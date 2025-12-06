@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { StorageProvider } from '@/lib/types/credentials';
+import { useCachedFetch, createCacheKey, DEFAULT_TTL } from '@/lib/utils/use-cached-fetch';
 
 interface Credential {
   id: string;
@@ -29,49 +30,56 @@ interface AnalyticsData {
   buckets: BucketAnalytics[];
 }
 
+interface CredentialsResponse {
+  credentials: Credential[];
+}
+
 export default function AnalyticsPage() {
-  const [credentials, setCredentials] = useState<Credential[]>([]);
   const [selectedCredentialId, setSelectedCredentialId] = useState<string>('');
-  const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
-  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    loadCredentials();
-  }, []);
-
-  useEffect(() => {
-    if (selectedCredentialId) {
-      loadAnalytics();
-    }
-  }, [selectedCredentialId]);
-
-  const loadCredentials = async () => {
-    try {
+  // Fetch credentials with caching
+  const {
+    data: credentialsData,
+    loading: credentialsLoading,
+  } = useCachedFetch<CredentialsResponse>(
+    'credentials',
+    async () => {
       const response = await fetch('/api/credentials');
-      const data = await response.json();
-      setCredentials(data.credentials || []);
-      if (data.credentials?.length > 0) {
-        setSelectedCredentialId(data.credentials[0].id);
-      }
-    } catch (error) {
-      console.error('Error loading credentials:', error);
+      if (!response.ok) throw new Error('Failed to fetch credentials');
+      return response.json();
+    },
+    {
+      ttl: DEFAULT_TTL.CREDENTIALS,
+      useLocalStorage: true,
     }
-  };
+  );
 
-  const loadAnalytics = async () => {
-    if (!selectedCredentialId) return;
+  const credentials = credentialsData?.credentials || [];
 
-    setLoading(true);
-    try {
+  // Auto-select first credential when credentials load
+  useEffect(() => {
+    if (credentials.length > 0 && !selectedCredentialId) {
+      setSelectedCredentialId(credentials[0].id);
+    }
+  }, [credentials, selectedCredentialId]);
+
+  // Fetch analytics with caching
+  const {
+    data: analytics,
+    loading,
+  } = useCachedFetch<AnalyticsData>(
+    createCacheKey('analytics', selectedCredentialId),
+    async () => {
+      if (!selectedCredentialId) throw new Error('No credential selected');
       const response = await fetch(`/api/analytics?credentialId=${selectedCredentialId}`);
-      const data = await response.json();
-      setAnalytics(data);
-    } catch (error) {
-      console.error('Error loading analytics:', error);
-    } finally {
-      setLoading(false);
+      if (!response.ok) throw new Error('Failed to fetch analytics');
+      return response.json();
+    },
+    {
+      ttl: DEFAULT_TTL.ANALYTICS,
+      enabled: !!selectedCredentialId,
     }
-  };
+  );
 
   const formatBytes = (bytes: number): string => {
     if (bytes === 0) return '0 Bytes';
@@ -94,6 +102,17 @@ export default function AnalyticsPage() {
     ];
     return colors[index % colors.length];
   };
+
+  if (credentialsLoading) {
+    return (
+      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+        <div className="text-center">
+          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent"></div>
+          <p className="mt-2 text-gray-500 dark:text-gray-400">Loading credentials...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (credentials.length === 0) {
     return (

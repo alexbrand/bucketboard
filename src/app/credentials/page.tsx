@@ -3,6 +3,8 @@
 import { useState, useEffect, Fragment } from 'react';
 import { StorageProvider } from '@/lib/types/credentials';
 import { CredentialForm } from '@/components/CredentialForm';
+import { useCachedFetch, DEFAULT_TTL } from '@/lib/utils/use-cached-fetch';
+import { cacheManager } from '@/lib/utils/cache';
 
 interface CredentialSummary {
   id: string;
@@ -12,27 +14,37 @@ interface CredentialSummary {
   updatedAt: string;
 }
 
+interface CredentialsResponse {
+  credentials: CredentialSummary[];
+}
+
 export default function CredentialsPage() {
-  const [credentials, setCredentials] = useState<CredentialSummary[]>([]);
-  const [loading, setLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
   const [testingCredentialId, setTestingCredentialId] = useState<string | null>(null);
   const [testResults, setTestResults] = useState<Record<string, { success: boolean; message: string }>>({});
 
-  useEffect(() => {
-    loadCredentials();
-  }, []);
+  // Fetch credentials with caching
+  const {
+    data: credentialsData,
+    loading,
+    refetch: refetchCredentials,
+  } = useCachedFetch<CredentialsResponse>(
+    'credentials',
+    async () => {
+      const response = await fetch('/api/credentials');
+      if (!response.ok) throw new Error('Failed to fetch credentials');
+      return response.json();
+    },
+    {
+      ttl: DEFAULT_TTL.CREDENTIALS,
+      useLocalStorage: true,
+    }
+  );
+
+  const credentials = credentialsData?.credentials || [];
 
   const loadCredentials = async () => {
-    try {
-      const response = await fetch('/api/credentials');
-      const data = await response.json();
-      setCredentials(data.credentials || []);
-    } catch (error) {
-      console.error('Error loading credentials:', error);
-    } finally {
-      setLoading(false);
-    }
+    await refetchCredentials();
   };
 
   const handleTestConnection = async (id: string) => {
@@ -79,6 +91,8 @@ export default function CredentialsPage() {
       });
 
       if (response.ok) {
+        // Invalidate credentials cache
+        cacheManager.invalidate('credentials', { useLocalStorage: true });
         await loadCredentials();
       } else {
         const error = await response.json();
@@ -139,6 +153,8 @@ export default function CredentialsPage() {
               <CredentialForm
                 onSuccess={() => {
                   setShowAddForm(false);
+                  // Invalidate credentials cache
+                  cacheManager.invalidate('credentials', { useLocalStorage: true });
                   loadCredentials();
                 }}
                 onCancel={() => setShowAddForm(false)}

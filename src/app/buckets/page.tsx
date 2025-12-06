@@ -4,6 +4,9 @@ import { useState, useEffect } from 'react';
 import { StorageProvider } from '@/lib/types/credentials';
 import { ProgressTracker, FileProgress } from '@/components/ProgressTracker';
 import { VirtualizedObjectList } from '@/components/VirtualizedObjectList';
+import { useCachedFetch, createCacheKey, DEFAULT_TTL } from '@/lib/utils/use-cached-fetch';
+import { cacheManager } from '@/lib/utils/cache';
+import { LastUpdated } from '@/components/LastUpdated';
 
 interface Credential {
   id: string;
@@ -17,50 +20,78 @@ interface Bucket {
   region?: string;
 }
 
+interface CredentialsResponse {
+  credentials: Credential[];
+}
+
+interface BucketsResponse {
+  buckets: Bucket[];
+  credentialId: string;
+}
+
 export default function BucketsPage() {
-  const [credentials, setCredentials] = useState<Credential[]>([]);
   const [selectedCredentialId, setSelectedCredentialId] = useState<string>('');
-  const [buckets, setBuckets] = useState<Bucket[]>([]);
   const [selectedBucket, setSelectedBucket] = useState<string>('');
-  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    loadCredentials();
-  }, []);
-
-  useEffect(() => {
-    if (selectedCredentialId) {
-      loadBuckets();
-    }
-  }, [selectedCredentialId]);
-
-  const loadCredentials = async () => {
-    try {
+  // Fetch credentials with caching
+  const {
+    data: credentialsData,
+    loading: credentialsLoading,
+  } = useCachedFetch<CredentialsResponse>(
+    'credentials',
+    async () => {
       const response = await fetch('/api/credentials');
-      const data = await response.json();
-      setCredentials(data.credentials || []);
-      if (data.credentials?.length > 0) {
-        setSelectedCredentialId(data.credentials[0].id);
-      }
-    } catch (error) {
-      console.error('Error loading credentials:', error);
+      if (!response.ok) throw new Error('Failed to fetch credentials');
+      return response.json();
+    },
+    {
+      ttl: DEFAULT_TTL.CREDENTIALS,
+      useLocalStorage: true,
     }
-  };
+  );
 
-  const loadBuckets = async () => {
-    if (!selectedCredentialId) return;
+  const credentials = credentialsData?.credentials || [];
 
-    setLoading(true);
-    try {
+  // Auto-select first credential when credentials load
+  useEffect(() => {
+    if (credentials.length > 0 && !selectedCredentialId) {
+      setSelectedCredentialId(credentials[0].id);
+    }
+  }, [credentials, selectedCredentialId]);
+
+  // Fetch buckets with caching
+  const {
+    data: bucketsData,
+    loading: bucketsLoading,
+    lastUpdated: bucketsLastUpdated,
+    refetch: refetchBuckets,
+  } = useCachedFetch<BucketsResponse>(
+    createCacheKey('buckets', selectedCredentialId),
+    async () => {
+      if (!selectedCredentialId) throw new Error('No credential selected');
       const response = await fetch(`/api/buckets?credentialId=${selectedCredentialId}`);
-      const data = await response.json();
-      setBuckets(data.buckets || []);
-    } catch (error) {
-      console.error('Error loading buckets:', error);
-    } finally {
-      setLoading(false);
+      if (!response.ok) throw new Error('Failed to fetch buckets');
+      return response.json();
+    },
+    {
+      ttl: DEFAULT_TTL.BUCKETS,
+      enabled: !!selectedCredentialId,
     }
-  };
+  );
+
+  const buckets = bucketsData?.buckets || [];
+  const loading = bucketsLoading;
+
+  if (credentialsLoading) {
+    return (
+      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+        <div className="text-center">
+          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent"></div>
+          <p className="mt-2 text-gray-500 dark:text-gray-400">Loading credentials...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (credentials.length === 0) {
     return (
@@ -108,6 +139,31 @@ export default function BucketsPage() {
       </div>
 
       <div className="mt-8">
+        {buckets.length > 0 && !bucketsLoading && (
+          <div className="mb-4 flex items-center justify-end gap-3">
+            <LastUpdated timestamp={bucketsLastUpdated} />
+            <button
+              onClick={() => refetchBuckets()}
+              disabled={bucketsLoading}
+              className="inline-flex items-center rounded-md bg-white px-2 py-1 text-xs font-medium text-gray-700 shadow-sm hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+              title="Refresh buckets"
+            >
+              <svg
+                className={`h-4 w-4 ${bucketsLoading ? 'animate-spin' : ''}`}
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                />
+              </svg>
+            </button>
+          </div>
+        )}
         {loading ? (
           <div className="text-center">
             <p className="text-gray-500 dark:text-gray-400">Loading buckets...</p>
@@ -194,10 +250,14 @@ interface ObjectMetadata extends StorageObject {
   tags?: Record<string, string>;
 }
 
+interface ObjectsResponse {
+  objects: StorageObject[];
+  bucket: string;
+  prefix: string;
+}
+
 function ObjectBrowser({ bucketName, credentialId }: ObjectBrowserProps) {
-  const [objects, setObjects] = useState<StorageObject[]>([]);
   const [currentPrefix, setCurrentPrefix] = useState<string>('');
-  const [loading, setLoading] = useState(false);
   const [selectedObject, setSelectedObject] = useState<StorageObject | null>(null);
   const [objectMetadata, setObjectMetadata] = useState<ObjectMetadata | null>(null);
   const [showCreateFolder, setShowCreateFolder] = useState(false);
@@ -224,27 +284,76 @@ function ObjectBrowser({ bucketName, credentialId }: ObjectBrowserProps) {
   const [fileProgress, setFileProgress] = useState<FileProgress[]>([]);
   const [abortControllers, setAbortControllers] = useState<Map<string, AbortController>>(new Map());
 
-  useEffect(() => {
-    loadObjects();
-  }, [bucketName, currentPrefix]);
-
-  const loadObjects = async () => {
-    setLoading(true);
-    try {
+  // Fetch objects with caching
+  const objectsCacheKey = createCacheKey('objects', bucketName, credentialId, currentPrefix);
+  const {
+    data: objectsData,
+    loading,
+    lastUpdated,
+    refetch: refetchObjects,
+  } = useCachedFetch<ObjectsResponse>(
+    objectsCacheKey,
+    async () => {
       const params = new URLSearchParams({
         credentialId,
         prefix: currentPrefix,
         delimiter: '/',
       });
-
       const response = await fetch(`/api/buckets/${bucketName}/objects?${params}`);
-      const data = await response.json();
-      setObjects(data.objects || []);
-    } catch (error) {
-      console.error('Error loading objects:', error);
-    } finally {
-      setLoading(false);
+      if (!response.ok) throw new Error('Failed to fetch objects');
+      return response.json();
+    },
+    {
+      ttl: DEFAULT_TTL.OBJECTS,
+      enabled: !!bucketName && !!credentialId,
     }
+  );
+
+  const objects = objectsData?.objects || [];
+
+  // Prefetch function for folder contents
+  const handleFolderHover = (folderKey: string) => {
+    const cacheKey = createCacheKey('objects', bucketName, credentialId, folderKey);
+    if (!cacheManager.get(cacheKey)) {
+      cacheManager.prefetch<ObjectsResponse>(
+        cacheKey,
+        async () => {
+          const params = new URLSearchParams({
+            credentialId,
+            prefix: folderKey,
+            delimiter: '/',
+          });
+          const response = await fetch(`/api/buckets/${bucketName}/objects?${params}`);
+          if (!response.ok) throw new Error('Failed to prefetch objects');
+          return response.json();
+        },
+        { ttl: DEFAULT_TTL.OBJECTS }
+      );
+    }
+  };
+
+  // Prefetch function for metadata
+  const handleFileHover = (object: StorageObject) => {
+    if (!object.isFolder) {
+      const cacheKey = createCacheKey('metadata', bucketName, credentialId, object.key);
+      if (!cacheManager.get(cacheKey)) {
+        cacheManager.prefetch<ObjectMetadata>(
+          cacheKey,
+          async () => {
+            const response = await fetch(
+              `/api/buckets/${bucketName}/metadata?credentialId=${credentialId}&key=${encodeURIComponent(object.key)}`
+            );
+            if (!response.ok) throw new Error('Failed to prefetch metadata');
+            return response.json();
+          },
+          { ttl: DEFAULT_TTL.METADATA }
+        );
+      }
+    }
+  };
+
+  const loadObjects = async () => {
+    await refetchObjects();
   };
 
   const navigateToFolder = (folderKey: string) => {
@@ -281,6 +390,11 @@ function ObjectBrowser({ bucketName, credentialId }: ObjectBrowserProps) {
       if (response.ok) {
         setShowCreateFolder(false);
         setNewFolderName('');
+        // Invalidate cache for all objects in this bucket/credential (including root folder)
+        const baseKey = createCacheKey('objects', bucketName, credentialId);
+        const escapedBaseKey = baseKey.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        // Match exact baseKey OR baseKey followed by colon and anything
+        cacheManager.invalidatePattern(new RegExp(`^${escapedBaseKey}(:.*)?$`));
         await loadObjects();
       } else {
         const error = await response.json();
@@ -449,6 +563,11 @@ function ObjectBrowser({ bucketName, credentialId }: ObjectBrowserProps) {
 
     setUploadingFile(false);
     event.target.value = '';
+    // Invalidate cache for all objects in this bucket/credential (including root folder)
+    const baseKey = createCacheKey('objects', bucketName, credentialId);
+    const escapedBaseKey = baseKey.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    // Match exact baseKey OR baseKey followed by colon and anything
+    cacheManager.invalidatePattern(new RegExp(`^${escapedBaseKey}(:.*)?$`));
     await loadObjects();
   };
 
@@ -468,6 +587,11 @@ function ObjectBrowser({ bucketName, credentialId }: ObjectBrowserProps) {
 
       if (response.ok) {
         setSelectedFiles(new Set());
+        // Invalidate cache for all objects in this bucket/credential (including root folder)
+        const baseKey = createCacheKey('objects', bucketName, credentialId);
+        const escapedBaseKey = baseKey.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        // Match exact baseKey OR baseKey followed by colon and anything
+        cacheManager.invalidatePattern(new RegExp(`^${escapedBaseKey}(:.*)?$`));
         await loadObjects();
       } else {
         const error = await response.json();
@@ -656,11 +780,24 @@ function ObjectBrowser({ bucketName, credentialId }: ObjectBrowserProps) {
       return;
     }
 
+    // Check cache first
+    const metadataCacheKey = createCacheKey('metadata', bucketName, credentialId, object.key);
+    const cached = cacheManager.get<ObjectMetadata>(metadataCacheKey, {
+      ttl: DEFAULT_TTL.METADATA,
+    });
+
+    if (cached) {
+      setObjectMetadata(cached);
+      return;
+    }
+
     try {
       const response = await fetch(
         `/api/buckets/${bucketName}/metadata?credentialId=${credentialId}&key=${encodeURIComponent(object.key)}`
       );
+      if (!response.ok) throw new Error('Failed to fetch metadata');
       const data = await response.json();
+      cacheManager.set(metadataCacheKey, data, { ttl: DEFAULT_TTL.METADATA });
       setObjectMetadata(data);
     } catch (error) {
       console.error('Error loading object metadata:', error);
@@ -704,6 +841,11 @@ function ObjectBrowser({ bucketName, credentialId }: ObjectBrowserProps) {
 
       if (response.ok) {
         setIsEditingMetadata(false);
+        // Invalidate metadata cache
+        const metadataCacheKey = createCacheKey('metadata', bucketName, credentialId, selectedObject.key);
+        cacheManager.invalidate(metadataCacheKey, { ttl: DEFAULT_TTL.METADATA });
+        // Also invalidate analytics cache since metadata changes might affect analytics
+        cacheManager.invalidatePattern(/^analytics:.*/);
         // Reload metadata
         await viewObjectMetadata(selectedObject);
         alert('Metadata updated successfully');
@@ -1080,6 +1222,29 @@ function ObjectBrowser({ bucketName, credentialId }: ObjectBrowserProps) {
                 Showing {filteredObjects.length} of {objects.length} item(s)
                 {hasActiveFilters && ' (filtered)'}
               </span>
+              <div className="flex items-center gap-3">
+                <LastUpdated timestamp={lastUpdated} />
+                <button
+                  onClick={() => refetchObjects()}
+                  disabled={loading}
+                  className="inline-flex items-center rounded-md bg-white px-2 py-1 text-xs font-medium text-gray-700 shadow-sm hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+                  title="Refresh data"
+                >
+                  <svg
+                    className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`}
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                    />
+                  </svg>
+                </button>
+              </div>
             </div>
           )}
 
@@ -1221,6 +1386,8 @@ function ObjectBrowser({ bucketName, credentialId }: ObjectBrowserProps) {
                 formatBytes={formatBytes}
                 showNavigateUp={!!currentPrefix}
                 onNavigateUp={navigateUp}
+                onFolderHover={handleFolderHover}
+                onFileHover={handleFileHover}
               />
             )}
           </div>

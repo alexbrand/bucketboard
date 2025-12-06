@@ -22,6 +22,8 @@ interface VirtualizedObjectListProps {
   formatBytes: (bytes: number) => string;
   showNavigateUp?: boolean;
   onNavigateUp?: () => void;
+  onFolderHover?: (key: string) => void;
+  onFileHover?: (object: StorageObject) => void;
 }
 
 interface RowData {
@@ -34,6 +36,8 @@ interface RowData {
   onViewObjectMetadata: (object: StorageObject) => void;
   onNavigateUp?: () => void;
   formatBytes: (bytes: number) => string;
+  onFolderHover?: (key: string) => void;
+  onFileHover?: (object: StorageObject) => void;
 }
 
 const RowComponent = ({
@@ -54,6 +58,8 @@ const RowComponent = ({
     onViewObjectMetadata,
     onNavigateUp,
     formatBytes,
+    onFolderHover,
+    onFileHover,
   } = data;
 
   // Handle "Navigate Up" button
@@ -99,6 +105,13 @@ const RowComponent = ({
       className={`flex items-center border-b border-gray-200 px-6 py-3 hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-gray-900 ${
         selectedObject?.key === object.key ? 'bg-blue-50 dark:bg-blue-900/20' : ''
       }`}
+      onMouseEnter={() => {
+        if (object.isFolder && onFolderHover) {
+          onFolderHover(object.key);
+        } else if (!object.isFolder && onFileHover) {
+          onFileHover(object);
+        }
+      }}
     >
       <input
         type="checkbox"
@@ -167,6 +180,8 @@ export function VirtualizedObjectList({
   formatBytes,
   showNavigateUp = false,
   onNavigateUp,
+  onFolderHover,
+  onFileHover,
 }: VirtualizedObjectListProps) {
   const listRef = useListRef(null);
   const [listHeight, setListHeight] = useState(600);
@@ -195,6 +210,8 @@ export function VirtualizedObjectList({
     onViewObjectMetadata,
     onNavigateUp,
     formatBytes,
+    onFolderHover,
+    onFileHover,
   };
 
   return (
