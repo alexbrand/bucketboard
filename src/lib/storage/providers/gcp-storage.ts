@@ -1,6 +1,6 @@
 import { Storage, Bucket as GCPBucket } from '@google-cloud/storage';
 import { StorageProvider } from '../interface';
-import { Bucket, ListObjectsParams, ListObjectsResponse, StorageObject } from '../../types/storage';
+import { Bucket, ListObjectsParams, ListObjectsResponse, StorageObject, UpdateMetadataParams } from '../../types/storage';
 import { GCPStorageCredentials } from '../../types/credentials';
 
 export class GCPStorageProvider implements StorageProvider {
@@ -181,12 +181,54 @@ export class GCPStorageProvider implements StorageProvider {
         lastModified: metadata.updated ? new Date(metadata.updated) : new Date(),
         etag: metadata.etag,
         storageClass: metadata.storageClass,
+        contentType: metadata.contentType,
+        metadata: metadata.metadata || {},
+        // GCP doesn't have tags like S3/Azure, but uses labels on the bucket level
+        tags: {},
         isFolder: false,
       };
     } catch (error) {
       console.error('Error getting object metadata:', error);
       throw new Error(
         `Failed to get object metadata: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
+    }
+  }
+
+  async updateObjectMetadata(bucket: string, key: string, updates: UpdateMetadataParams): Promise<void> {
+    try {
+      const file = this.client.bucket(bucket).file(key);
+      const updateData: any = {};
+
+      // Update custom metadata
+      if (updates.metadata) {
+        updateData.metadata = updates.metadata;
+      }
+
+      // Update content type
+      if (updates.contentType) {
+        updateData.contentType = updates.contentType;
+      }
+
+      // Update storage class
+      if (updates.storageClass) {
+        updateData.storageClass = updates.storageClass;
+      }
+
+      // Apply metadata updates
+      if (Object.keys(updateData).length > 0) {
+        await file.setMetadata(updateData);
+      }
+
+      // Note: GCP doesn't support object-level tags like S3/Azure
+      // Tags in GCP are bucket-level labels, not object-level
+      if (updates.tags && Object.keys(updates.tags).length > 0) {
+        console.warn('GCP Storage does not support object-level tags. Use metadata instead.');
+      }
+    } catch (error) {
+      console.error('Error updating object metadata:', error);
+      throw new Error(
+        `Failed to update object metadata: ${error instanceof Error ? error.message : 'Unknown error'}`
       );
     }
   }

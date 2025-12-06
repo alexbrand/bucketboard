@@ -5,7 +5,7 @@ import {
   BlobItem,
 } from '@azure/storage-blob';
 import { StorageProvider } from '../interface';
-import { Bucket, ListObjectsParams, ListObjectsResponse, StorageObject } from '../../types/storage';
+import { Bucket, ListObjectsParams, ListObjectsResponse, StorageObject, UpdateMetadataParams } from '../../types/storage';
 import { AzureBlobCredentials } from '../../types/credentials';
 
 export class AzureBlobProvider implements StorageProvider {
@@ -205,12 +205,60 @@ export class AzureBlobProvider implements StorageProvider {
         size: properties.contentLength || 0,
         lastModified: properties.lastModified || new Date(),
         etag: properties.etag,
+        contentType: properties.contentType,
+        metadata: properties.metadata || {},
+        tags: properties.tags || {},
         isFolder: false,
       };
     } catch (error) {
       console.error('Error getting blob metadata:', error);
       throw new Error(
         `Failed to get blob metadata: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
+    }
+  }
+
+  async updateObjectMetadata(bucket: string, key: string, updates: UpdateMetadataParams): Promise<void> {
+    try {
+      const containerClient = this.client.getContainerClient(bucket);
+      const blobClient = containerClient.getBlockBlobClient(key);
+
+      // Update custom metadata if provided
+      if (updates.metadata) {
+        await blobClient.setMetadata(updates.metadata);
+      }
+
+      // Update tags if provided
+      if (updates.tags) {
+        await blobClient.setTags(updates.tags);
+      }
+
+      // Update HTTP headers (content type, storage tier) if provided
+      if (updates.contentType) {
+        await blobClient.setHTTPHeaders({
+          blobContentType: updates.contentType,
+        });
+      }
+
+      // Note: Azure Blob Storage uses "access tiers" instead of storage classes
+      // Common tiers: Hot, Cool, Archive
+      if (updates.storageClass) {
+        // Map S3 storage classes to Azure access tiers
+        const tierMap: Record<string, any> = {
+          STANDARD: 'Hot',
+          STANDARD_IA: 'Cool',
+          GLACIER: 'Archive',
+          Hot: 'Hot',
+          Cool: 'Cool',
+          Archive: 'Archive',
+        };
+        const tier = tierMap[updates.storageClass] || 'Hot';
+        await blobClient.setAccessTier(tier);
+      }
+    } catch (error) {
+      console.error('Error updating blob metadata:', error);
+      throw new Error(
+        `Failed to update blob metadata: ${error instanceof Error ? error.message : 'Unknown error'}`
       );
     }
   }

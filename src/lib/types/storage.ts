@@ -11,6 +11,16 @@ export interface StorageObject {
   etag?: string;
   storageClass?: string;
   isFolder?: boolean;
+  contentType?: string;
+  metadata?: Record<string, string>;
+  tags?: Record<string, string>;
+}
+
+export interface UpdateMetadataParams {
+  metadata?: Record<string, string>;
+  tags?: Record<string, string>;
+  storageClass?: string;
+  contentType?: string;
 }
 
 export interface ListObjectsParams {

@@ -1,4 +1,4 @@
-import { Bucket, ListObjectsParams, ListObjectsResponse, StorageObject } from '../types/storage';
+import { Bucket, ListObjectsParams, ListObjectsResponse, StorageObject, UpdateMetadataParams } from '../types/storage';
 
 export interface StorageProvider {
   testConnection(): Promise<{ success: boolean; message: string }>;
@@ -9,4 +9,5 @@ export interface StorageProvider {
   deleteObject(bucket: string, key: string): Promise<void>;
   deleteObjects(bucket: string, keys: string[]): Promise<void>;
   getObjectMetadata(bucket: string, key: string): Promise<StorageObject>;
+  updateObjectMetadata(bucket: string, key: string, updates: UpdateMetadataParams): Promise<void>;
 }

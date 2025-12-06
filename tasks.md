@@ -53,10 +53,10 @@
 
 ### Advanced Features
 
-- [ ] Implement advanced search and filtering capabilities
-- [ ] Add batch operations support (multi-select, bulk delete, bulk download)
-- [ ] Build metadata management UI (edit tags, storage class, permissions)
-- [ ] Create storage analytics dashboard with usage insights
+- [x] Implement advanced search and filtering capabilities
+- [x] Add batch operations support (multi-select, bulk delete, bulk download)
+- [x] Build metadata management UI (edit tags, storage class, permissions)
+- [x] Create storage analytics dashboard with usage insights
 - [ ] Add concurrent upload/download with progress tracking
 - [ ] Implement virtual scrolling for large object lists
 - [ ] Build ACL and permissions management interface

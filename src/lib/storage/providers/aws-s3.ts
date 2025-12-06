@@ -7,9 +7,12 @@ import {
   DeleteObjectCommand,
   DeleteObjectsCommand,
   HeadObjectCommand,
+  CopyObjectCommand,
+  GetObjectTaggingCommand,
+  PutObjectTaggingCommand,
 } from '@aws-sdk/client-s3';
 import { StorageProvider } from '../interface';
-import { Bucket, ListObjectsParams, ListObjectsResponse, StorageObject } from '../../types/storage';
+import { Bucket, ListObjectsParams, ListObjectsResponse, StorageObject, UpdateMetadataParams } from '../../types/storage';
 import { AWSS3Credentials } from '../../types/credentials';
 
 export class AWSS3Provider implements StorageProvider {
@@ -210,25 +213,95 @@ export class AWSS3Provider implements StorageProvider {
 
   async getObjectMetadata(bucket: string, key: string): Promise<StorageObject> {
     try {
-      const command = new HeadObjectCommand({
+      const headCommand = new HeadObjectCommand({
         Bucket: bucket,
         Key: key,
       });
 
-      const response = await this.client.send(command);
+      const headResponse = await this.client.send(headCommand);
+
+      // Get tags separately
+      let tags: Record<string, string> = {};
+      try {
+        const tagCommand = new GetObjectTaggingCommand({
+          Bucket: bucket,
+          Key: key,
+        });
+        const tagResponse = await this.client.send(tagCommand);
+        tags = (tagResponse.TagSet || []).reduce((acc, tag) => {
+          if (tag.Key && tag.Value) {
+            acc[tag.Key] = tag.Value;
+          }
+          return acc;
+        }, {} as Record<string, string>);
+      } catch (error) {
+        // Tags may not be accessible, continue without them
+        console.warn('Could not fetch tags:', error);
+      }
 
       return {
         key,
-        size: response.ContentLength || 0,
-        lastModified: response.LastModified || new Date(),
-        etag: response.ETag,
-        storageClass: response.StorageClass,
+        size: headResponse.ContentLength || 0,
+        lastModified: headResponse.LastModified || new Date(),
+        etag: headResponse.ETag,
+        storageClass: headResponse.StorageClass,
+        contentType: headResponse.ContentType,
+        metadata: headResponse.Metadata || {},
+        tags,
         isFolder: false,
       };
     } catch (error) {
       console.error('Error getting object metadata:', error);
       throw new Error(
         `Failed to get object metadata: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
+    }
+  }
+
+  async updateObjectMetadata(bucket: string, key: string, updates: UpdateMetadataParams): Promise<void> {
+    try {
+      // S3 doesn't allow direct metadata updates - we need to copy the object to itself with new metadata
+      const copyParams: any = {
+        Bucket: bucket,
+        CopySource: `${bucket}/${key}`,
+        Key: key,
+        MetadataDirective: 'REPLACE',
+      };
+
+      // Add custom metadata
+      if (updates.metadata) {
+        copyParams.Metadata = updates.metadata;
+      }
+
+      // Add content type
+      if (updates.contentType) {
+        copyParams.ContentType = updates.contentType;
+      }
+
+      // Add storage class
+      if (updates.storageClass) {
+        copyParams.StorageClass = updates.storageClass;
+      }
+
+      // Copy object with new metadata
+      const copyCommand = new CopyObjectCommand(copyParams);
+      await this.client.send(copyCommand);
+
+      // Update tags separately if provided
+      if (updates.tags) {
+        const tagCommand = new PutObjectTaggingCommand({
+          Bucket: bucket,
+          Key: key,
+          Tagging: {
+            TagSet: Object.entries(updates.tags).map(([Key, Value]) => ({ Key, Value })),
+          },
+        });
+        await this.client.send(tagCommand);
+      }
+    } catch (error) {
+      console.error('Error updating object metadata:', error);
+      throw new Error(
+        `Failed to update object metadata: ${error instanceof Error ? error.message : 'Unknown error'}`
       );
     }
   }
