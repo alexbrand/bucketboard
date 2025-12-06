@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import dynamic from 'next/dynamic';
 import { StorageProvider } from '@/lib/types/credentials';
 import type { FileProgress } from '@/components/ProgressTracker';
@@ -8,7 +8,19 @@ import { useCachedFetch, createCacheKey, DEFAULT_TTL } from '@/lib/utils/use-cac
 import { cacheManager } from '@/lib/utils/cache';
 import { LastUpdated } from '@/components/LastUpdated';
 import { useKeyboardShortcuts, KeyboardShortcut } from '@/lib/utils/use-keyboard-shortcuts';
-import { KeyboardShortcutsHelp } from '@/components/KeyboardShortcutsHelp';
+import { useShortcuts } from '@/components/ShortcutsContext';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Loader2, Package, RefreshCw, FolderPlus, Upload, Search, Filter, X, Download } from 'lucide-react';
 
 // Lazy load heavy components
 const ProgressTracker = dynamic(
@@ -118,8 +130,8 @@ export default function BucketsPage() {
     return (
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
         <div className="text-center">
-          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent"></div>
-          <p className="mt-2 text-gray-500 dark:text-gray-400">Loading credentials...</p>
+          <Loader2 className="mx-auto h-8 w-8 animate-spin text-primary" />
+          <p className="mt-2 text-muted-foreground">Loading credentials...</p>
         </div>
       </div>
     );
@@ -129,17 +141,14 @@ export default function BucketsPage() {
     return (
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">No credentials found</h2>
-          <p className="mt-2 text-gray-600 dark:text-gray-400">
+          <h2 className="text-2xl font-bold">No credentials found</h2>
+          <p className="mt-2 text-muted-foreground">
             Please add a credential first to browse your buckets.
           </p>
           <div className="mt-6">
-            <a
-              href="/credentials"
-              className="inline-flex items-center rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
-            >
-              Add Credential
-            </a>
+            <Button asChild>
+              <a href="/credentials">Add Credential</a>
+            </Button>
           </div>
         </div>
       </div>
@@ -150,23 +159,24 @@ export default function BucketsPage() {
     <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
       <div className="sm:flex sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Buckets</h1>
-          <p className="mt-2 text-sm text-gray-700 dark:text-gray-300">
+          <h1 className="text-3xl font-bold">Buckets</h1>
+          <p className="mt-2 text-sm text-muted-foreground">
             Browse and manage your cloud storage buckets
           </p>
         </div>
         <div className="mt-4 sm:ml-16 sm:mt-0">
-          <select
-            value={selectedCredentialId}
-            onChange={(e) => setSelectedCredentialId(e.target.value)}
-            className="block w-full rounded-md border-gray-300 bg-white px-4 py-2 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
-          >
-            {credentials.map((cred) => (
-              <option key={cred.id} value={cred.id}>
-                {cred.name}
-              </option>
-            ))}
-          </select>
+          <Select value={selectedCredentialId} onValueChange={setSelectedCredentialId}>
+            <SelectTrigger className="w-[200px]">
+              <SelectValue placeholder="Select credential" />
+            </SelectTrigger>
+            <SelectContent>
+              {credentials.map((cred) => (
+                <SelectItem key={cred.id} value={cred.id}>
+                  {cred.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
@@ -174,136 +184,122 @@ export default function BucketsPage() {
         {buckets.length > 0 && !bucketsLoading && (
           <div className="mb-4 flex items-center justify-end gap-3">
             <LastUpdated timestamp={bucketsLastUpdated} />
-            <button
+            <Button
+              variant="outline"
+              size="sm"
               onClick={() => refetchBuckets()}
               disabled={bucketsLoading}
-              className="inline-flex items-center rounded-md bg-white px-2 py-1 text-xs font-medium text-gray-700 shadow-sm hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
               title="Refresh buckets"
             >
-              <svg
-                className={`h-4 w-4 ${bucketsLoading ? 'animate-spin' : ''}`}
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                />
-              </svg>
-            </button>
+              <RefreshCw className={`h-4 w-4 ${bucketsLoading ? 'animate-spin' : ''}`} />
+            </Button>
           </div>
         )}
         {loading ? (
           <div className="text-center">
-            <p className="text-gray-500 dark:text-gray-400">Loading buckets...</p>
+            <p className="text-muted-foreground">Loading buckets...</p>
           </div>
         ) : buckets.length === 0 ? (
-          <div className="rounded-lg border border-gray-200 bg-white p-12 text-center shadow-sm dark:border-gray-800 dark:bg-gray-950">
-            <h3 className="text-sm font-semibold text-gray-900 dark:text-white">No buckets found</h3>
-            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-              No buckets found for the selected credential.
-            </p>
-          </div>
+          <Card className="p-12 text-center">
+            <CardHeader>
+              <CardTitle>No buckets found</CardTitle>
+              <CardDescription>
+                No buckets found for the selected credential.
+              </CardDescription>
+            </CardHeader>
+          </Card>
         ) : (
           <>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {paginatedBuckets.map((bucket) => (
-              <button
+              <Card
                 key={bucket.name}
-                onClick={() => setSelectedBucket(bucket.name)}
-                className={`rounded-lg border p-6 text-left transition-all hover:border-blue-500 hover:shadow-md ${
+                className={`cursor-pointer transition-all hover:border-primary hover:shadow-md ${
                   selectedBucket === bucket.name
-                    ? 'border-blue-500 bg-blue-50 dark:border-blue-400 dark:bg-blue-900/20'
-                    : 'border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-950'
+                    ? 'border-primary bg-primary/5'
+                    : ''
                 }`}
+                onClick={() => setSelectedBucket(bucket.name)}
               >
-                <div className="flex items-center">
-                  <svg
-                    className="h-8 w-8 text-blue-600 dark:text-blue-400"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
-                    />
-                  </svg>
-                  <h3 className="ml-3 text-lg font-semibold text-gray-900 dark:text-white">
-                    {bucket.name}
-                  </h3>
-                </div>
-                {bucket.region && (
-                  <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                    Region: {bucket.region}
-                  </p>
-                )}
-                {bucket.creationDate && (
-                  <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                    Created: {new Date(bucket.creationDate).toLocaleDateString()}
-                  </p>
-                )}
-              </button>
+                <CardContent className="p-6">
+                  <div className="flex items-center">
+                    <Package className="h-8 w-8 text-primary" />
+                    <h3 className="ml-3 text-lg font-semibold">
+                      {bucket.name}
+                    </h3>
+                  </div>
+                  {bucket.region && (
+                    <p className="mt-2 text-sm text-muted-foreground">
+                      Region: {bucket.region}
+                    </p>
+                  )}
+                  {bucket.creationDate && (
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      Created: {new Date(bucket.creationDate).toLocaleDateString()}
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
             ))}
           </div>
           
           {/* Pagination Controls */}
           {totalPages > 1 && (
-            <div className="mt-6 flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 dark:border-gray-800 dark:bg-gray-950 sm:px-6">
+            <div className="mt-6 flex items-center justify-between border-t px-4 py-3 sm:px-6">
               <div className="flex flex-1 justify-between sm:hidden">
-                <button
+                <Button
+                  variant="outline"
                   onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
                   disabled={currentPage === 1}
-                  className="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800"
                 >
                   Previous
-                </button>
-                <button
+                </Button>
+                <Button
+                  variant="outline"
                   onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
                   disabled={currentPage === totalPages}
-                  className="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800"
                 >
                   Next
-                </button>
+                </Button>
               </div>
               <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
                 <div className="flex items-center gap-4">
-                  <p className="text-sm text-gray-700 dark:text-gray-300">
+                  <p className="text-sm">
                     Showing <span className="font-medium">{startIndex + 1}</span> to{' '}
                     <span className="font-medium">{Math.min(endIndex, buckets.length)}</span> of{' '}
                     <span className="font-medium">{buckets.length}</span> bucket{buckets.length !== 1 ? 's' : ''}
                   </p>
                   <div className="flex items-center gap-2">
-                    <label htmlFor="items-per-page" className="text-sm text-gray-700 dark:text-gray-300">
+                    <Label htmlFor="items-per-page" className="text-sm">
                       Per page:
-                    </label>
-                    <select
-                      id="items-per-page"
-                      value={itemsPerPage}
-                      onChange={(e) => {
-                        setItemsPerPage(Number(e.target.value));
+                    </Label>
+                    <Select
+                      value={itemsPerPage.toString()}
+                      onValueChange={(value) => {
+                        setItemsPerPage(Number(value));
                         setCurrentPage(1);
                       }}
-                      className="rounded-md border-gray-300 text-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
                     >
-                      <option value={6}>6</option>
-                      <option value={12}>12</option>
-                      <option value={24}>24</option>
-                      <option value={48}>48</option>
-                    </select>
+                      <SelectTrigger id="items-per-page" className="w-[80px]">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="6">6</SelectItem>
+                        <SelectItem value="12">12</SelectItem>
+                        <SelectItem value="24">24</SelectItem>
+                        <SelectItem value="48">48</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
                 <div>
                   <nav className="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
-                    <button
+                    <Button
+                      variant="outline"
+                      size="icon"
                       onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
                       disabled={currentPage === 1}
-                      className="relative inline-flex items-center rounded-l-md border border-gray-300 bg-white px-2 py-2 text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400 dark:hover:bg-gray-800"
+                      className="rounded-r-none"
                     >
                       <span className="sr-only">Previous</span>
                       <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -313,7 +309,7 @@ export default function BucketsPage() {
                           clipRule="evenodd"
                         />
                       </svg>
-                    </button>
+                    </Button>
                     {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
                       // Show first page, last page, current page, and pages around current
                       const showPage =
@@ -329,7 +325,7 @@ export default function BucketsPage() {
                         return (
                           <span
                             key={`ellipsis-${page}`}
-                            className="relative inline-flex items-center border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300"
+                            className="relative inline-flex items-center border px-4 py-2 text-sm font-medium"
                           >
                             ...
                           </span>
@@ -339,23 +335,22 @@ export default function BucketsPage() {
                       if (!showPage) return null;
 
                       return (
-                        <button
+                        <Button
                           key={page}
+                          variant={currentPage === page ? 'default' : 'outline'}
                           onClick={() => setCurrentPage(page)}
-                          className={`relative inline-flex items-center border px-4 py-2 text-sm font-medium ${
-                            currentPage === page
-                              ? 'z-10 border-blue-500 bg-blue-50 text-blue-600 dark:border-blue-400 dark:bg-blue-900/20 dark:text-blue-400'
-                              : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400 dark:hover:bg-gray-800'
-                          }`}
+                          className="rounded-none border-l-0"
                         >
                           {page}
-                        </button>
+                        </Button>
                       );
                     })}
-                    <button
+                    <Button
+                      variant="outline"
+                      size="icon"
                       onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
                       disabled={currentPage === totalPages}
-                      className="relative inline-flex items-center rounded-r-md border border-gray-300 bg-white px-2 py-2 text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400 dark:hover:bg-gray-800"
+                      className="rounded-l-none"
                     >
                       <span className="sr-only">Next</span>
                       <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -365,7 +360,7 @@ export default function BucketsPage() {
                           clipRule="evenodd"
                         />
                       </svg>
-                    </button>
+                    </Button>
                   </nav>
                 </div>
               </div>
@@ -438,8 +433,8 @@ function ObjectBrowser({ bucketName, credentialId }: ObjectBrowserProps) {
   const [fileProgress, setFileProgress] = useState<FileProgress[]>([]);
   const [abortControllers, setAbortControllers] = useState<Map<string, AbortController>>(new Map());
 
-  // Keyboard shortcuts help
-  const [showShortcutsHelp, setShowShortcutsHelp] = useState(false);
+  // Keyboard shortcuts context
+  const { showHelp, hideHelp } = useShortcuts();
 
   // Keyboard navigation in object list
   const [focusedIndex, setFocusedIndex] = useState<number>(-1);
@@ -1216,8 +1211,8 @@ function ObjectBrowser({ bucketName, credentialId }: ObjectBrowserProps) {
           setNewFolderName('');
         } else if (isEditingMetadata) {
           cancelEditingMetadata();
-        } else if (showShortcutsHelp) {
-          setShowShortcutsHelp(false);
+        } else {
+          hideHelp();
         }
       },
       ignoreInInput: false,
@@ -1307,7 +1302,7 @@ function ObjectBrowser({ bucketName, credentialId }: ObjectBrowserProps) {
       key: '?',
       shiftKey: true,
       description: 'Show shortcuts help',
-      action: () => setShowShortcutsHelp(true),
+      action: () => showHelp(),
       ignoreInInput: false,
     },
     {
@@ -1353,32 +1348,29 @@ function ObjectBrowser({ bucketName, credentialId }: ObjectBrowserProps) {
         onClose={handleCloseProgressTracker}
         onCancel={handleCancelTransfer}
       />
-      <KeyboardShortcutsHelp
-        isOpen={showShortcutsHelp}
-        onClose={() => setShowShortcutsHelp(false)}
-        shortcuts={objectBrowserShortcuts}
-        title="Object Browser Shortcuts"
-      />
       <div className="space-y-6">
         {/* Header with breadcrumbs and actions */}
-        <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-950">
-        <div className="flex items-center justify-between">
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <button
+            <Button
+              variant="link"
               onClick={() => setCurrentPrefix('')}
-              className="text-sm font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400"
+              className="h-auto p-0 text-sm"
             >
               {bucketName}
-            </button>
+            </Button>
             {breadcrumbs.map((crumb) => (
               <div key={crumb.path} className="flex items-center space-x-2">
-                <span className="text-gray-400">/</span>
-                <button
+                <span className="text-muted-foreground">/</span>
+                <Button
+                  variant="link"
                   onClick={() => navigateToFolder(crumb.path)}
-                  className="text-sm font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400"
+                  className="h-auto p-0 text-sm"
                 >
                   {crumb.name}
-                </button>
+                </Button>
               </div>
             ))}
           </div>
@@ -1386,104 +1378,87 @@ function ObjectBrowser({ bucketName, credentialId }: ObjectBrowserProps) {
           <div className="flex items-center space-x-2">
             {selectedFiles.size > 0 && (
               <>
-                <button
+                <Button
                   onClick={handleBulkDownload}
-                  className="inline-flex items-center rounded-md bg-green-600 px-3 py-2 text-sm font-medium text-white hover:bg-green-700"
+                  variant="default"
+                  size="sm"
+                  className="bg-green-600 hover:bg-green-700"
                 >
-                  <svg
-                    className="mr-1.5 h-4 w-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                    />
-                  </svg>
+                  <Download className="mr-1.5 h-4 w-4" />
                   Download ({selectedFiles.size})
-                </button>
-                <button
+                </Button>
+                <Button
                   onClick={handleDeleteSelected}
-                  className="inline-flex items-center rounded-md bg-red-600 px-3 py-2 text-sm font-medium text-white hover:bg-red-700"
+                  variant="destructive"
+                  size="sm"
                 >
-                  <svg
-                    className="mr-1.5 h-4 w-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                    />
-                  </svg>
+                  <X className="mr-1.5 h-4 w-4" />
                   Delete ({selectedFiles.size})
-                </button>
+                </Button>
               </>
             )}
-            <button
+            <Button
               onClick={() => setShowCreateFolder(true)}
-              className="inline-flex items-center rounded-md bg-gray-600 px-3 py-2 text-sm font-medium text-white hover:bg-gray-700"
+              variant="secondary"
+              size="sm"
             >
+              <FolderPlus className="mr-1.5 h-4 w-4" />
               New Folder
-            </button>
-            <label className="inline-flex cursor-pointer items-center rounded-md bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700">
+            </Button>
+            <Button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploadingFile}
+              size="sm"
+            >
+              <Upload className="mr-1.5 h-4 w-4" />
               {uploadingFile ? 'Uploading...' : 'Upload Files'}
-              <input
-                ref={fileInputRef}
-                type="file"
-                multiple
-                onChange={handleFileUpload}
-                disabled={uploadingFile}
-                className="hidden"
-              />
-            </label>
+            </Button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              onChange={handleFileUpload}
+              disabled={uploadingFile}
+              className="hidden"
+            />
           </div>
-        </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Folder creation form */}
         {showCreateFolder && (
-          <div className="mt-4 rounded-md border border-gray-300 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-900">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-              Folder Name
-            </label>
-            <div className="mt-2 flex space-x-2">
-              <input
-                type="text"
-                value={newFolderName}
-                onChange={(e) => setNewFolderName(e.target.value)}
-                placeholder="Enter folder name"
-                className="block flex-1 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white sm:text-sm"
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') createFolder();
-                  if (e.key === 'Escape') {
+          <Card className="mt-4">
+            <CardContent className="p-4">
+              <Label htmlFor="folder-name">Folder Name</Label>
+              <div className="mt-2 flex space-x-2">
+                <Input
+                  id="folder-name"
+                  type="text"
+                  value={newFolderName}
+                  onChange={(e) => setNewFolderName(e.target.value)}
+                  placeholder="Enter folder name"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') createFolder();
+                    if (e.key === 'Escape') {
+                      setShowCreateFolder(false);
+                      setNewFolderName('');
+                    }
+                  }}
+                />
+                <Button onClick={createFolder}>Create</Button>
+                <Button
+                  variant="outline"
+                  onClick={() => {
                     setShowCreateFolder(false);
                     setNewFolderName('');
-                  }
-                }}
-              />
-              <button
-                onClick={createFolder}
-                className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
-              >
-                Create
-              </button>
-              <button
-                onClick={() => {
-                  setShowCreateFolder(false);
-                  setNewFolderName('');
-                }}
-                className="rounded-md bg-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-400 dark:bg-gray-700 dark:text-gray-300"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
+                  }}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         )}
 
         {/* Search and Filter Section */}
@@ -1491,201 +1466,145 @@ function ObjectBrowser({ bucketName, credentialId }: ObjectBrowserProps) {
           {/* Search bar */}
           <div className="flex items-center space-x-2">
             <div className="relative flex-1">
-              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                <svg
-                  className="h-5 w-5 text-gray-400"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                  />
-                </svg>
-              </div>
-              <input
+              <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
+              <Input
                 ref={searchInputRef}
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search files and folders..."
-                className="block w-full rounded-md border-gray-300 py-2 pl-10 pr-3 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white sm:text-sm"
+                className="pl-10"
               />
               {searchQuery && (
-                <button
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-0 top-1/2 h-8 w-8 -translate-y-1/2"
                   onClick={() => setSearchQuery('')}
-                  className="absolute inset-y-0 right-0 flex items-center pr-3"
                 >
-                  <svg
-                    className="h-4 w-4 text-gray-400 hover:text-gray-600"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  </svg>
-                </button>
+                  <X className="h-4 w-4" />
+                </Button>
               )}
             </div>
-            <button
+            <Button
               onClick={() => setShowFilters(!showFilters)}
-              className={`inline-flex items-center rounded-md px-4 py-2 text-sm font-medium shadow-sm ${
-                showFilters || hasActiveFilters
-                  ? 'bg-blue-600 text-white hover:bg-blue-700'
-                  : 'bg-white text-gray-700 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
-              }`}
+              variant={showFilters || hasActiveFilters ? 'default' : 'outline'}
             >
-              <svg
-                className="mr-2 h-4 w-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
-                />
-              </svg>
+              <Filter className="mr-2 h-4 w-4" />
               Filters
               {hasActiveFilters && (
-                <span className="ml-2 inline-flex h-5 w-5 items-center justify-center rounded-full bg-white text-xs font-bold text-blue-600">
+                <span className="ml-2 inline-flex h-5 w-5 items-center justify-center rounded-full bg-background text-xs font-bold text-primary">
                   !
                 </span>
               )}
-            </button>
+            </Button>
             {hasActiveFilters && (
-              <button
-                onClick={clearAllFilters}
-                className="inline-flex items-center rounded-md bg-gray-200 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
-              >
+              <Button variant="outline" onClick={clearAllFilters}>
                 Clear All
-              </button>
+              </Button>
             )}
           </div>
 
           {/* Results count */}
           {objects.length > 0 && (
-            <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
+            <div className="flex items-center justify-between text-sm text-muted-foreground">
               <span>
                 Showing {filteredObjects.length} of {objects.length} item(s)
                 {hasActiveFilters && ' (filtered)'}
               </span>
               <div className="flex items-center gap-3">
                 <LastUpdated timestamp={lastUpdated} />
-                <button
+                <Button
+                  variant="outline"
+                  size="sm"
                   onClick={() => refetchObjects()}
                   disabled={loading}
-                  className="inline-flex items-center rounded-md bg-white px-2 py-1 text-xs font-medium text-gray-700 shadow-sm hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
                   title="Refresh data"
                 >
-                  <svg
-                    className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`}
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                    />
-                  </svg>
-                </button>
+                  <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+                </Button>
               </div>
             </div>
           )}
 
           {/* Filter panel */}
           {showFilters && (
-            <div className="rounded-md border border-gray-300 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-900">
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                {/* File Type Filter */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    File Type
-                  </label>
-                  <select
-                    value={fileTypeFilter}
-                    onChange={(e) => setFileTypeFilter(e.target.value)}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white sm:text-sm"
-                  >
-                    <option value="all">All Types</option>
-                    <option value="image">Images</option>
-                    <option value="video">Videos</option>
-                    <option value="audio">Audio</option>
-                    <option value="document">Documents</option>
-                    <option value="code">Code</option>
-                    <option value="archive">Archives</option>
-                    <option value="other">Other</option>
-                  </select>
-                </div>
+            <Card>
+              <CardContent className="p-4">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                  {/* File Type Filter */}
+                  <div>
+                    <Label htmlFor="file-type-filter">File Type</Label>
+                    <Select value={fileTypeFilter} onValueChange={setFileTypeFilter}>
+                      <SelectTrigger id="file-type-filter" className="mt-1">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Types</SelectItem>
+                        <SelectItem value="image">Images</SelectItem>
+                        <SelectItem value="video">Videos</SelectItem>
+                        <SelectItem value="audio">Audio</SelectItem>
+                        <SelectItem value="document">Documents</SelectItem>
+                        <SelectItem value="code">Code</SelectItem>
+                        <SelectItem value="archive">Archives</SelectItem>
+                        <SelectItem value="other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-                {/* Size Filter */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Size Range
-                  </label>
-                  <select
-                    value={
-                      sizeFilter.min === 0 && sizeFilter.max === Infinity
-                        ? 'all'
-                        : sizeFilter.max === 1024 * 1024
-                          ? 'small'
-                          : sizeFilter.max === 100 * 1024 * 1024
-                            ? 'medium'
-                            : 'large'
-                    }
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      if (value === 'all') setSizeFilter({ min: 0, max: Infinity });
-                      else if (value === 'small') setSizeFilter({ min: 0, max: 1024 * 1024 }); // < 1MB
-                      else if (value === 'medium')
-                        setSizeFilter({ min: 1024 * 1024, max: 100 * 1024 * 1024 }); // 1MB - 100MB
-                      else setSizeFilter({ min: 100 * 1024 * 1024, max: Infinity }); // > 100MB
-                    }}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white sm:text-sm"
-                  >
-                    <option value="all">All Sizes</option>
-                    <option value="small">&lt; 1 MB</option>
-                    <option value="medium">1 MB - 100 MB</option>
-                    <option value="large">&gt; 100 MB</option>
-                  </select>
-                </div>
+                  {/* Size Filter */}
+                  <div>
+                    <Label htmlFor="size-filter">Size Range</Label>
+                    <Select
+                      value={
+                        sizeFilter.min === 0 && sizeFilter.max === Infinity
+                          ? 'all'
+                          : sizeFilter.max === 1024 * 1024
+                            ? 'small'
+                            : sizeFilter.max === 100 * 1024 * 1024
+                              ? 'medium'
+                              : 'large'
+                      }
+                      onValueChange={(value) => {
+                        if (value === 'all') setSizeFilter({ min: 0, max: Infinity });
+                        else if (value === 'small') setSizeFilter({ min: 0, max: 1024 * 1024 });
+                        else if (value === 'medium')
+                          setSizeFilter({ min: 1024 * 1024, max: 100 * 1024 * 1024 });
+                        else setSizeFilter({ min: 100 * 1024 * 1024, max: Infinity });
+                      }}
+                    >
+                      <SelectTrigger id="size-filter" className="mt-1">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Sizes</SelectItem>
+                        <SelectItem value="small">&lt; 1 MB</SelectItem>
+                        <SelectItem value="medium">1 MB - 100 MB</SelectItem>
+                        <SelectItem value="large">&gt; 100 MB</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-                {/* Date Range Filter */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Modified Date
-                  </label>
-                  <div className="mt-1 flex space-x-2">
-                    <input
-                      type="date"
-                      value={dateFilter.start}
-                      onChange={(e) => setDateFilter({ ...dateFilter, start: e.target.value })}
-                      className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white sm:text-sm"
-                    />
-                    <span className="flex items-center text-gray-500">to</span>
-                    <input
-                      type="date"
-                      value={dateFilter.end}
-                      onChange={(e) => setDateFilter({ ...dateFilter, end: e.target.value })}
-                      className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white sm:text-sm"
-                    />
+                  {/* Date Range Filter */}
+                  <div>
+                    <Label>Modified Date</Label>
+                    <div className="mt-1 flex space-x-2">
+                      <Input
+                        type="date"
+                        value={dateFilter.start}
+                        onChange={(e) => setDateFilter({ ...dateFilter, start: e.target.value })}
+                      />
+                      <span className="flex items-center text-muted-foreground">to</span>
+                      <Input
+                        type="date"
+                        value={dateFilter.end}
+                        onChange={(e) => setDateFilter({ ...dateFilter, end: e.target.value })}
+                      />
+                    </div>
                   </div>
                 </div>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
           )}
         </div>
       </div>
@@ -1694,45 +1613,30 @@ function ObjectBrowser({ bucketName, credentialId }: ObjectBrowserProps) {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Object list */}
         <div className="lg:col-span-2">
-          <div className="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-950">
+          <Card>
             {loading ? (
-              <div className="p-12 text-center">
-                <p className="text-gray-500 dark:text-gray-400">Loading...</p>
-              </div>
+              <CardContent className="p-12 text-center">
+                <p className="text-muted-foreground">Loading...</p>
+              </CardContent>
             ) : objects.length === 0 ? (
-              <div className="p-12 text-center">
-                <p className="text-gray-500 dark:text-gray-400">
+              <CardContent className="p-12 text-center">
+                <p className="text-muted-foreground">
                   {currentPrefix ? 'This folder is empty' : 'This bucket is empty'}
                 </p>
-              </div>
+              </CardContent>
             ) : filteredObjects.length === 0 ? (
-              <div className="p-12 text-center">
-                <svg
-                  className="mx-auto h-12 w-12 text-gray-400"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-                <p className="mt-2 text-sm font-medium text-gray-900 dark:text-white">No results found</p>
-                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              <CardContent className="p-12 text-center">
+                <Search className="mx-auto h-12 w-12 text-muted-foreground" />
+                <CardTitle className="mt-2">No results found</CardTitle>
+                <CardDescription className="mt-1">
                   Try adjusting your search or filters to find what you're looking for.
-                </p>
+                </CardDescription>
                 {hasActiveFilters && (
-                  <button
-                    onClick={clearAllFilters}
-                    className="mt-4 inline-flex items-center rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
-                  >
+                  <Button onClick={clearAllFilters} className="mt-4">
                     Clear All Filters
-                  </button>
+                  </Button>
                 )}
-              </div>
+              </CardContent>
             ) : (
               <VirtualizedObjectList
                 objects={filteredObjects}
@@ -1750,57 +1654,57 @@ function ObjectBrowser({ bucketName, credentialId }: ObjectBrowserProps) {
                 onFocusedIndexChange={setFocusedIndex}
               />
             )}
-          </div>
+          </Card>
         </div>
 
         {/* Metadata panel */}
         <div className="lg:col-span-1">
-          <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-950">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Details</h3>
-              {selectedObject && !selectedObject.isFolder && !isEditingMetadata && (
-                <button
-                  onClick={startEditingMetadata}
-                  className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400"
-                >
-                  Edit
-                </button>
-              )}
-            </div>
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle>Details</CardTitle>
+                {selectedObject && !selectedObject.isFolder && !isEditingMetadata && (
+                  <Button variant="link" onClick={startEditingMetadata} className="h-auto p-0 text-sm">
+                    Edit
+                  </Button>
+                )}
+              </div>
+            </CardHeader>
+            <CardContent>
             {selectedObject ? (
-              <div className="mt-4 space-y-4">
+              <div className="space-y-4">
                 <div>
-                  <p className="text-xs font-medium uppercase text-gray-500 dark:text-gray-400">
+                  <p className="text-xs font-medium uppercase text-muted-foreground">
                     Name
                   </p>
-                  <p className="mt-1 break-all text-sm text-gray-900 dark:text-white">
+                  <p className="mt-1 break-all text-sm">
                     {selectedObject.key.split('/').filter(Boolean).pop()}
                   </p>
                 </div>
                 {!selectedObject.isFolder && (
                   <>
                     <div>
-                      <p className="text-xs font-medium uppercase text-gray-500 dark:text-gray-400">
+                      <p className="text-xs font-medium uppercase text-muted-foreground">
                         Size
                       </p>
-                      <p className="mt-1 text-sm text-gray-900 dark:text-white">
+                      <p className="mt-1 text-sm">
                         {formatBytes(selectedObject.size)}
                       </p>
                     </div>
                     <div>
-                      <p className="text-xs font-medium uppercase text-gray-500 dark:text-gray-400">
+                      <p className="text-xs font-medium uppercase text-muted-foreground">
                         Last Modified
                       </p>
-                      <p className="mt-1 text-sm text-gray-900 dark:text-white">
+                      <p className="mt-1 text-sm">
                         {new Date(selectedObject.lastModified).toLocaleString()}
                       </p>
                     </div>
                     {selectedObject.etag && (
                       <div>
-                        <p className="text-xs font-medium uppercase text-gray-500 dark:text-gray-400">
+                        <p className="text-xs font-medium uppercase text-muted-foreground">
                           ETag
                         </p>
-                        <p className="mt-1 break-all text-sm text-gray-900 dark:text-white">
+                        <p className="mt-1 break-all text-sm">
                           {selectedObject.etag}
                         </p>
                       </div>
@@ -1810,82 +1714,83 @@ function ObjectBrowser({ bucketName, credentialId }: ObjectBrowserProps) {
                       <>
                         {/* Storage Class Editor */}
                         <div>
-                          <label className="block text-xs font-medium uppercase text-gray-500 dark:text-gray-400">
+                          <Label className="text-xs font-medium uppercase">
                             Storage Class
-                          </label>
-                          <select
+                          </Label>
+                          <Select
                             value={editedStorageClass}
-                            onChange={(e) => setEditedStorageClass(e.target.value)}
-                            className="mt-1 block w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                            onValueChange={setEditedStorageClass}
                           >
-                            <option value="">Default</option>
-                            <option value="STANDARD">Standard</option>
-                            <option value="STANDARD_IA">Standard-IA</option>
-                            <option value="INTELLIGENT_TIERING">Intelligent-Tiering</option>
-                            <option value="ONEZONE_IA">One Zone-IA</option>
-                            <option value="GLACIER">Glacier</option>
-                            <option value="GLACIER_IR">Glacier Instant Retrieval</option>
-                            <option value="DEEP_ARCHIVE">Glacier Deep Archive</option>
-                          </select>
+                            <SelectTrigger className="mt-1">
+                              <SelectValue placeholder="Default" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="">Default</SelectItem>
+                              <SelectItem value="STANDARD">Standard</SelectItem>
+                              <SelectItem value="STANDARD_IA">Standard-IA</SelectItem>
+                              <SelectItem value="INTELLIGENT_TIERING">Intelligent-Tiering</SelectItem>
+                              <SelectItem value="ONEZONE_IA">One Zone-IA</SelectItem>
+                              <SelectItem value="GLACIER">Glacier</SelectItem>
+                              <SelectItem value="GLACIER_IR">Glacier Instant Retrieval</SelectItem>
+                              <SelectItem value="DEEP_ARCHIVE">Glacier Deep Archive</SelectItem>
+                            </SelectContent>
+                          </Select>
                         </div>
 
                         {/* Content Type Editor */}
                         <div>
-                          <label className="block text-xs font-medium uppercase text-gray-500 dark:text-gray-400">
+                          <Label className="text-xs font-medium uppercase">
                             Content Type
-                          </label>
-                          <input
+                          </Label>
+                          <Input
                             type="text"
                             value={editedContentType}
                             onChange={(e) => setEditedContentType(e.target.value)}
                             placeholder="e.g., text/plain, image/jpeg"
-                            className="mt-1 block w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                            className="mt-1"
                           />
                         </div>
 
                         {/* Custom Metadata Editor */}
                         <div>
                           <div className="flex items-center justify-between">
-                            <p className="text-xs font-medium uppercase text-gray-500 dark:text-gray-400">
+                            <Label className="text-xs font-medium uppercase">
                               Custom Metadata
-                            </p>
-                            <button
+                            </Label>
+                            <Button
+                              variant="link"
+                              size="sm"
                               onClick={addMetadataField}
-                              className="text-xs text-blue-600 hover:text-blue-700 dark:text-blue-400"
+                              className="h-auto p-0 text-xs"
                             >
                               + Add
-                            </button>
+                            </Button>
                           </div>
                           <div className="mt-2 space-y-2">
                             {Object.entries(editedMetadata).map(([key, value]) => (
                               <div key={key} className="flex items-center space-x-2">
-                                <input
+                                <Input
                                   type="text"
                                   value={key}
                                   disabled
-                                  className="block w-1/3 rounded-md border-gray-300 bg-gray-100 text-xs dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400"
+                                  className="w-1/3 text-xs"
                                 />
-                                <input
+                                <Input
                                   type="text"
                                   value={value}
                                   onChange={(e) =>
                                     setEditedMetadata({ ...editedMetadata, [key]: e.target.value })
                                   }
-                                  className="block flex-1 rounded-md border-gray-300 text-xs shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                                  className="flex-1 text-xs"
                                 />
-                                <button
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8 text-destructive"
                                   onClick={() => removeMetadataField(key)}
-                                  className="text-red-600 hover:text-red-700"
                                 >
-                                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      strokeWidth={2}
-                                      d="M6 18L18 6M6 6l12 12"
-                                    />
-                                  </svg>
-                                </button>
+                                  <X className="h-4 w-4" />
+                                </Button>
                               </div>
                             ))}
                           </div>
@@ -1894,46 +1799,43 @@ function ObjectBrowser({ bucketName, credentialId }: ObjectBrowserProps) {
                         {/* Tags Editor */}
                         <div>
                           <div className="flex items-center justify-between">
-                            <p className="text-xs font-medium uppercase text-gray-500 dark:text-gray-400">
+                            <Label className="text-xs font-medium uppercase">
                               Tags
-                            </p>
-                            <button
+                            </Label>
+                            <Button
+                              variant="link"
+                              size="sm"
                               onClick={addTagField}
-                              className="text-xs text-blue-600 hover:text-blue-700 dark:text-blue-400"
+                              className="h-auto p-0 text-xs"
                             >
                               + Add
-                            </button>
+                            </Button>
                           </div>
                           <div className="mt-2 space-y-2">
                             {Object.entries(editedTags).map(([key, value]) => (
                               <div key={key} className="flex items-center space-x-2">
-                                <input
+                                <Input
                                   type="text"
                                   value={key}
                                   disabled
-                                  className="block w-1/3 rounded-md border-gray-300 bg-gray-100 text-xs dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400"
+                                  className="w-1/3 text-xs"
                                 />
-                                <input
+                                <Input
                                   type="text"
                                   value={value}
                                   onChange={(e) =>
                                     setEditedTags({ ...editedTags, [key]: e.target.value })
                                   }
-                                  className="block flex-1 rounded-md border-gray-300 text-xs shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                                  className="flex-1 text-xs"
                                 />
-                                <button
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8 text-destructive"
                                   onClick={() => removeTagField(key)}
-                                  className="text-red-600 hover:text-red-700"
                                 >
-                                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      strokeWidth={2}
-                                      d="M6 18L18 6M6 6l12 12"
-                                    />
-                                  </svg>
-                                </button>
+                                  <X className="h-4 w-4" />
+                                </Button>
                               </div>
                             ))}
                           </div>
@@ -1941,20 +1843,21 @@ function ObjectBrowser({ bucketName, credentialId }: ObjectBrowserProps) {
 
                         {/* Save/Cancel buttons */}
                         <div className="flex space-x-2">
-                          <button
+                          <Button
                             onClick={saveMetadata}
                             disabled={savingMetadata}
-                            className="flex-1 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+                            className="flex-1"
                           >
                             {savingMetadata ? 'Saving...' : 'Save Changes'}
-                          </button>
-                          <button
+                          </Button>
+                          <Button
+                            variant="outline"
                             onClick={cancelEditingMetadata}
                             disabled={savingMetadata}
-                            className="flex-1 rounded-md bg-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-400 disabled:opacity-50 dark:bg-gray-700 dark:text-gray-300"
+                            className="flex-1"
                           >
                             Cancel
-                          </button>
+                          </Button>
                         </div>
                       </>
                     ) : (
@@ -1962,20 +1865,20 @@ function ObjectBrowser({ bucketName, credentialId }: ObjectBrowserProps) {
                         {/* Read-only view */}
                         {selectedObject.storageClass && (
                           <div>
-                            <p className="text-xs font-medium uppercase text-gray-500 dark:text-gray-400">
+                            <p className="text-xs font-medium uppercase text-muted-foreground">
                               Storage Class
                             </p>
-                            <p className="mt-1 text-sm text-gray-900 dark:text-white">
+                            <p className="mt-1 text-sm">
                               {selectedObject.storageClass}
                             </p>
                           </div>
                         )}
                         {objectMetadata?.contentType && (
                           <div>
-                            <p className="text-xs font-medium uppercase text-gray-500 dark:text-gray-400">
+                            <p className="text-xs font-medium uppercase text-muted-foreground">
                               Content Type
                             </p>
-                            <p className="mt-1 text-sm text-gray-900 dark:text-white">
+                            <p className="mt-1 text-sm">
                               {objectMetadata.contentType}
                             </p>
                           </div>
@@ -1983,22 +1886,19 @@ function ObjectBrowser({ bucketName, credentialId }: ObjectBrowserProps) {
                         {objectMetadata?.metadata &&
                           Object.keys(objectMetadata.metadata).length > 0 && (
                             <div>
-                              <p className="text-xs font-medium uppercase text-gray-500 dark:text-gray-400">
+                              <p className="text-xs font-medium uppercase text-muted-foreground">
                                 Custom Metadata
                               </p>
                               <div className="mt-2 space-y-2">
                                 {Object.entries(objectMetadata.metadata).map(([key, value]) => (
-                                  <div
-                                    key={key}
-                                    className="rounded bg-gray-50 p-2 dark:bg-gray-900"
-                                  >
-                                    <p className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                                  <Card key={key} className="p-2">
+                                    <p className="text-xs font-medium">
                                       {key}
                                     </p>
-                                    <p className="mt-1 text-xs text-gray-600 dark:text-gray-400">
+                                    <p className="mt-1 text-xs text-muted-foreground">
                                       {value}
                                     </p>
-                                  </div>
+                                  </Card>
                                 ))}
                               </div>
                             </div>
@@ -2006,14 +1906,14 @@ function ObjectBrowser({ bucketName, credentialId }: ObjectBrowserProps) {
                         {objectMetadata?.tags &&
                           Object.keys(objectMetadata.tags).length > 0 && (
                             <div>
-                              <p className="text-xs font-medium uppercase text-gray-500 dark:text-gray-400">
+                              <p className="text-xs font-medium uppercase text-muted-foreground">
                                 Tags
                               </p>
                               <div className="mt-2 flex flex-wrap gap-2">
                                 {Object.entries(objectMetadata.tags).map(([key, value]) => (
                                   <span
                                     key={key}
-                                    className="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+                                    className="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary"
                                   >
                                     {key}: {value}
                                   </span>
@@ -2028,9 +1928,9 @@ function ObjectBrowser({ bucketName, credentialId }: ObjectBrowserProps) {
                     {!isEditingMetadata && (
                       <div className="space-y-2">
                         {isFilePreviewable(selectedObject.key) && (
-                          <button
+                          <Button
                             onClick={() => setPreviewFile(selectedObject)}
-                            className="inline-flex w-full items-center justify-center rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700"
+                            className="w-full bg-green-600 hover:bg-green-700"
                           >
                             <svg
                               className="mr-1.5 h-4 w-4"
@@ -2052,40 +1952,32 @@ function ObjectBrowser({ bucketName, credentialId }: ObjectBrowserProps) {
                               />
                             </svg>
                             Preview
-                          </button>
+                          </Button>
                         )}
-                        <a
-                          href={`/api/buckets/${bucketName}/download?credentialId=${credentialId}&key=${encodeURIComponent(selectedObject.key)}`}
-                          className="inline-flex w-full items-center justify-center rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                        <Button
+                          asChild
+                          className="w-full"
                         >
-                          <svg
-                            className="mr-1.5 h-4 w-4"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
+                          <a
+                            href={`/api/buckets/${bucketName}/download?credentialId=${credentialId}&key=${encodeURIComponent(selectedObject.key)}`}
                           >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                            />
-                          </svg>
-                          Download
-                        </a>
+                            <Download className="mr-1.5 h-4 w-4" />
+                            Download
+                          </a>
+                        </Button>
                       </div>
                     )}
                   </>
                 )}
               </div>
             ) : (
-              <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">
+              <p className="text-sm text-muted-foreground">
                 Select an object to view its details
               </p>
             )}
-          </div>
+            </CardContent>
+          </Card>
         </div>
-      </div>
       </div>
       
       {/* File Preview Modal */}

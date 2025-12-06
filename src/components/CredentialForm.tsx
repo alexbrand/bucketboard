@@ -2,6 +2,19 @@
 
 import { useState } from 'react';
 import { StorageProvider } from '@/lib/types/credentials';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { CheckCircle2, XCircle } from 'lucide-react';
 
 interface CredentialFormProps {
   onSuccess: () => void;
@@ -145,110 +158,72 @@ export function CredentialForm({ onSuccess, onCancel }: CredentialFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <div>
-        <label
-          htmlFor="name"
-          className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-        >
-          Credential Name
-        </label>
-        <input
-          type="text"
+      <div className="space-y-2">
+        <Label htmlFor="name">Credential Name</Label>
+        <Input
           id="name"
           value={name}
           onChange={(e) => setName(e.target.value)}
           required
-          className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white sm:text-sm"
           placeholder="My AWS Credentials"
         />
       </div>
 
-      <div>
-        <label
-          htmlFor="provider"
-          className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-        >
-          Provider
-        </label>
-        <select
-          id="provider"
-          value={provider}
-          onChange={(e) => setProvider(e.target.value as StorageProvider)}
-          className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white sm:text-sm"
-        >
-          <option value="aws-s3">AWS S3 / S3-Compatible</option>
-          <option value="azure-blob">Azure Blob Storage</option>
-          <option value="gcp-storage">Google Cloud Storage</option>
-        </select>
+      <div className="space-y-2">
+        <Label htmlFor="provider">Provider</Label>
+        <Select value={provider} onValueChange={(value) => setProvider(value as StorageProvider)}>
+          <SelectTrigger id="provider">
+            <SelectValue placeholder="Select a provider" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="aws-s3">AWS S3 / S3-Compatible</SelectItem>
+            <SelectItem value="azure-blob">Azure Blob Storage</SelectItem>
+            <SelectItem value="gcp-storage">Google Cloud Storage</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {isS3Provider && (
         <>
-          <div>
-            <label
-              htmlFor="awsAccessKeyId"
-              className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-            >
-              Access Key ID
-            </label>
-            <input
-              type="text"
+          <div className="space-y-2">
+            <Label htmlFor="awsAccessKeyId">Access Key ID</Label>
+            <Input
               id="awsAccessKeyId"
               value={awsAccessKeyId}
               onChange={(e) => setAwsAccessKeyId(e.target.value)}
               required
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white sm:text-sm"
             />
           </div>
-          <div>
-            <label
-              htmlFor="awsSecretAccessKey"
-              className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-            >
-              Secret Access Key
-            </label>
-            <input
-              type="password"
+          <div className="space-y-2">
+            <Label htmlFor="awsSecretAccessKey">Secret Access Key</Label>
+            <Input
               id="awsSecretAccessKey"
+              type="password"
               value={awsSecretAccessKey}
               onChange={(e) => setAwsSecretAccessKey(e.target.value)}
               required
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white sm:text-sm"
             />
           </div>
-          <div>
-            <label
-              htmlFor="awsRegion"
-              className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-            >
-              Region
-            </label>
-            <input
-              type="text"
+          <div className="space-y-2">
+            <Label htmlFor="awsRegion">Region</Label>
+            <Input
               id="awsRegion"
               value={awsRegion}
               onChange={(e) => setAwsRegion(e.target.value)}
               required
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white sm:text-sm"
               placeholder="us-east-1"
             />
           </div>
-          <div>
-            <label
-              htmlFor="s3Endpoint"
-              className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-            >
-              Endpoint URL (optional)
-            </label>
-            <input
-              type="url"
+          <div className="space-y-2">
+            <Label htmlFor="s3Endpoint">Endpoint URL (optional)</Label>
+            <Input
               id="s3Endpoint"
+              type="url"
               value={s3Endpoint}
               onChange={(e) => setS3Endpoint(e.target.value)}
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white sm:text-sm"
               placeholder="https://s3.example.com"
             />
-            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+            <p className="text-xs text-muted-foreground">
               Leave empty for AWS S3. For S3-compatible services (MinIO, Backblaze B2, DigitalOcean Spaces, Wasabi), provide the endpoint URL.
             </p>
           </div>
@@ -257,36 +232,23 @@ export function CredentialForm({ onSuccess, onCancel }: CredentialFormProps) {
 
       {provider === 'azure-blob' && (
         <>
-          <div>
-            <label
-              htmlFor="azureAccountName"
-              className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-            >
-              Account Name
-            </label>
-            <input
-              type="text"
+          <div className="space-y-2">
+            <Label htmlFor="azureAccountName">Account Name</Label>
+            <Input
               id="azureAccountName"
               value={azureAccountName}
               onChange={(e) => setAzureAccountName(e.target.value)}
               required
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white sm:text-sm"
             />
           </div>
-          <div>
-            <label
-              htmlFor="azureAccountKey"
-              className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-            >
-              Account Key
-            </label>
-            <input
-              type="password"
+          <div className="space-y-2">
+            <Label htmlFor="azureAccountKey">Account Key</Label>
+            <Input
               id="azureAccountKey"
+              type="password"
               value={azureAccountKey}
               onChange={(e) => setAzureAccountKey(e.target.value)}
               required
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white sm:text-sm"
             />
           </div>
         </>
@@ -294,125 +256,68 @@ export function CredentialForm({ onSuccess, onCancel }: CredentialFormProps) {
 
       {provider === 'gcp-storage' && (
         <>
-          <div>
-            <label
-              htmlFor="gcpProjectId"
-              className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-            >
-              Project ID
-            </label>
-            <input
-              type="text"
+          <div className="space-y-2">
+            <Label htmlFor="gcpProjectId">Project ID</Label>
+            <Input
               id="gcpProjectId"
               value={gcpProjectId}
               onChange={(e) => setGcpProjectId(e.target.value)}
               required
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white sm:text-sm"
             />
           </div>
-          <div>
-            <label
-              htmlFor="gcpClientEmail"
-              className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-            >
-              Client Email
-            </label>
-            <input
-              type="email"
+          <div className="space-y-2">
+            <Label htmlFor="gcpClientEmail">Client Email</Label>
+            <Input
               id="gcpClientEmail"
+              type="email"
               value={gcpClientEmail}
               onChange={(e) => setGcpClientEmail(e.target.value)}
               required
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white sm:text-sm"
             />
           </div>
-          <div>
-            <label
-              htmlFor="gcpPrivateKey"
-              className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-            >
-              Private Key
-            </label>
-            <textarea
+          <div className="space-y-2">
+            <Label htmlFor="gcpPrivateKey">Private Key</Label>
+            <Textarea
               id="gcpPrivateKey"
               value={gcpPrivateKey}
               onChange={(e) => setGcpPrivateKey(e.target.value)}
               required
               rows={4}
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white sm:text-sm"
-              placeholder="-----BEGIN PRIVATE KEY-----&#10;...&#10;-----END PRIVATE KEY-----"
+              placeholder="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----"
             />
           </div>
         </>
       )}
 
       {testResult && (
-        <div
-          className={`rounded-md p-4 ${
-            testResult.success
-              ? 'bg-green-50 text-green-800 dark:bg-green-900/20 dark:text-green-400'
-              : 'bg-red-50 text-red-800 dark:bg-red-900/20 dark:text-red-400'
-          }`}
-        >
-          <div className="flex">
-            <div className="flex-shrink-0">
-              {testResult.success ? (
-                <svg
-                  className="h-5 w-5 text-green-400"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              ) : (
-                <svg
-                  className="h-5 w-5 text-red-400"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              )}
-            </div>
-            <div className="ml-3">
-              <p className="text-sm font-medium">{testResult.message}</p>
-            </div>
+        <Alert variant={testResult.success ? 'default' : 'destructive'}>
+          {testResult.success ? (
+            <CheckCircle2 className="h-4 w-4" />
+          ) : (
+            <XCircle className="h-4 w-4" />
+          )}
+          <div>
+            <AlertDescription>{testResult.message}</AlertDescription>
           </div>
-        </div>
+        </Alert>
       )}
 
       <div className="flex justify-between items-center">
-        <button
+        <Button
           type="button"
+          variant="outline"
           onClick={handleTestConnection}
           disabled={testLoading}
-          className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 disabled:opacity-50"
         >
           {testLoading ? 'Testing...' : 'Test Connection'}
-        </button>
+        </Button>
         <div className="flex space-x-3">
-          <button
-            type="button"
-            onClick={onCancel}
-            className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
-          >
+          <Button type="button" variant="outline" onClick={onCancel}>
             Cancel
-          </button>
-          <button
-            type="submit"
-            disabled={loading}
-            className="inline-flex justify-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50"
-          >
+          </Button>
+          <Button type="submit" disabled={loading}>
             {loading ? 'Creating...' : 'Create Credential'}
-          </button>
+          </Button>
         </div>
       </div>
     </form>

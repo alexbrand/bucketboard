@@ -2,6 +2,10 @@
 
 import { List, useListRef } from 'react-window';
 import { useEffect, useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import { ArrowUp, Folder, File } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface StorageObject {
   key: string;
@@ -71,29 +75,17 @@ const RowComponent = ({
     const isFocused = focusedIndex === 0;
     return (
       <div style={style}>
-        <button
+        <Button
+          variant="ghost"
           onClick={onNavigateUp}
-          className={`flex w-full items-center border-b border-gray-200 px-6 py-3 text-left hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-gray-900 ${
-            isFocused ? 'ring-2 ring-inset ring-blue-500' : ''
-          }`}
+          className={cn(
+            'w-full justify-start border-b rounded-none',
+            isFocused && 'ring-2 ring-inset ring-ring'
+          )}
         >
-          <svg
-            className="h-5 w-5 text-gray-400"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M10 19l-7-7m0 0l7-7m-7 7h18"
-            />
-          </svg>
-          <span className="ml-3 text-sm font-medium text-gray-700 dark:text-gray-300">
-            Go up
-          </span>
-        </button>
+          <ArrowUp className="h-5 w-5 text-muted-foreground" />
+          <span className="ml-3 text-sm font-medium">Go up</span>
+        </Button>
       </div>
     );
   }
@@ -107,13 +99,16 @@ const RowComponent = ({
   }
 
   const isFocused = focusedIndex === index;
+  const isSelected = selectedObject?.key === object.key;
 
   return (
     <div
       style={style}
-      className={`flex items-center border-b border-gray-200 px-6 py-3 hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-gray-900 ${
-        selectedObject?.key === object.key ? 'bg-blue-50 dark:bg-blue-900/20' : ''
-      } ${isFocused ? 'ring-2 ring-inset ring-blue-500' : ''}`}
+      className={cn(
+        'flex items-center border-b px-6 py-3 hover:bg-accent',
+        isSelected && 'bg-primary/5',
+        isFocused && 'ring-2 ring-inset ring-ring'
+      )}
       onMouseEnter={() => {
         if (object.isFolder && onFolderHover) {
           onFolderHover(object.key);
@@ -122,11 +117,10 @@ const RowComponent = ({
         }
       }}
     >
-      <input
-        type="checkbox"
+      <Checkbox
         checked={selectedFiles.has(object.key)}
-        onChange={() => onToggleFileSelection(object.key)}
-        className="mr-3 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+        onCheckedChange={() => onToggleFileSelection(object.key)}
+        className="mr-3"
       />
       <button
         onClick={() =>
@@ -135,40 +129,16 @@ const RowComponent = ({
         className="flex flex-1 items-center"
       >
         {object.isFolder ? (
-          <svg
-            className="h-5 w-5 text-blue-500"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"
-            />
-          </svg>
+          <Folder className="h-5 w-5 text-primary" />
         ) : (
-          <svg
-            className="h-5 w-5 text-gray-400"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-            />
-          </svg>
+          <File className="h-5 w-5 text-muted-foreground" />
         )}
         <div className="ml-3 flex-1 text-left">
-          <p className="text-sm font-medium text-gray-900 dark:text-white">
+          <p className="text-sm font-medium">
             {object.key.split('/').filter(Boolean).pop()}
           </p>
           {!object.isFolder && (
-            <p className="text-xs text-gray-500 dark:text-gray-400">
+            <p className="text-xs text-muted-foreground">
               {formatBytes(object.size)} •{' '}
               {new Date(object.lastModified).toLocaleString()}
             </p>
@@ -234,7 +204,7 @@ export function VirtualizedObjectList({
   };
 
   return (
-    <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-950">
+    <div className="overflow-hidden rounded-lg border">
       <List<RowData>
         listRef={listRef}
         defaultHeight={listHeight}
@@ -242,7 +212,7 @@ export function VirtualizedObjectList({
         rowHeight={rowHeight}
         rowComponent={RowComponent}
         rowProps={rowProps}
-        className="scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 dark:scrollbar-thumb-gray-600 dark:scrollbar-track-gray-800"
+        className="scrollbar-thin"
       />
     </div>
   );

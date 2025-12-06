@@ -1,14 +1,15 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useKeyboardShortcuts, KeyboardShortcut } from '@/lib/utils/use-keyboard-shortcuts';
+import { useShortcuts } from '@/components/ShortcutsContext';
 import { KeyboardShortcutsHelp } from '@/components/KeyboardShortcutsHelp';
+import { Keyboard } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 export function GlobalKeyboardShortcuts() {
   const router = useRouter();
-  const pathname = usePathname();
-  const [showHelp, setShowHelp] = useState(false);
+  const { showHelp, hideHelp, isOpen } = useShortcuts();
 
   const shortcuts: KeyboardShortcut[] = [
     {
@@ -35,7 +36,7 @@ export function GlobalKeyboardShortcuts() {
       key: '?',
       shiftKey: true,
       description: 'Show keyboard shortcuts help',
-      action: () => setShowHelp(true),
+      action: () => showHelp(),
       ignoreInInput: false, // Allow even in inputs
     },
   ];
@@ -45,30 +46,18 @@ export function GlobalKeyboardShortcuts() {
   return (
     <>
       {/* Help button indicator */}
-      <button
-        onClick={() => setShowHelp(true)}
-        className="fixed bottom-4 right-4 z-40 flex h-10 w-10 items-center justify-center rounded-full bg-blue-600 text-white shadow-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+      <Button
+        onClick={showHelp}
+        className="fixed bottom-4 right-4 z-40 h-10 w-10 rounded-full p-0 shadow-lg"
         title="Keyboard shortcuts (Shift+?)"
+        size="icon"
       >
-        <svg
-          className="h-5 w-5"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"
-          />
-        </svg>
-      </button>
+        <Keyboard className="h-5 w-5" />
+      </Button>
 
       <KeyboardShortcutsHelp
-        isOpen={showHelp}
-        onClose={() => setShowHelp(false)}
-        shortcuts={shortcuts}
+        isOpen={isOpen}
+        onClose={hideHelp}
       />
     </>
   );

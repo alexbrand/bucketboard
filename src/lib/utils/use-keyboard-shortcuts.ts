@@ -61,7 +61,10 @@ export function useKeyboardShortcuts(shortcuts: KeyboardShortcut[], enabled: boo
 
 export function formatShortcut(shortcut: KeyboardShortcut): string {
   const parts: string[] = [];
-  const isMac = typeof window !== 'undefined' && navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+  const isMac = typeof window !== 'undefined' && (
+    navigator.platform?.toUpperCase().indexOf('MAC') >= 0 ||
+    navigator.userAgent?.toUpperCase().indexOf('MAC') >= 0
+  );
 
   if (shortcut.ctrlKey) parts.push(isMac ? '⌃' : 'Ctrl');
   if (shortcut.metaKey) parts.push(isMac ? '⌘' : 'Cmd');
