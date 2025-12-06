@@ -105,7 +105,7 @@ const RowComponent = ({
     <div
       style={style}
       className={cn(
-        'flex items-center border-b px-6 py-3 hover:bg-accent',
+        'grid grid-cols-[auto_1fr_auto_auto] items-center gap-4 border-b px-6 py-3 hover:bg-accent',
         isSelected && 'bg-primary/5',
         isFocused && 'ring-2 ring-inset ring-ring'
       )}
@@ -120,31 +120,28 @@ const RowComponent = ({
       <Checkbox
         checked={selectedFiles.has(object.key)}
         onCheckedChange={() => onToggleFileSelection(object.key)}
-        className="mr-3"
       />
       <button
         onClick={() =>
           object.isFolder ? onNavigateToFolder(object.key) : onViewObjectMetadata(object)
         }
-        className="flex flex-1 items-center"
+        className="flex items-center min-w-0 text-left"
       >
         {object.isFolder ? (
-          <Folder className="h-5 w-5 text-primary" />
+          <Folder className="h-5 w-5 flex-shrink-0 text-primary" />
         ) : (
-          <File className="h-5 w-5 text-muted-foreground" />
+          <File className="h-5 w-5 flex-shrink-0 text-muted-foreground" />
         )}
-        <div className="ml-3 flex-1 text-left">
-          <p className="text-sm font-medium">
-            {object.key.split('/').filter(Boolean).pop()}
-          </p>
-          {!object.isFolder && (
-            <p className="text-xs text-muted-foreground">
-              {formatBytes(object.size)} •{' '}
-              {new Date(object.lastModified).toLocaleString()}
-            </p>
-          )}
-        </div>
+        <span className="ml-3 text-sm font-medium truncate">
+          {object.key.split('/').filter(Boolean).pop()}
+        </span>
       </button>
+      <div className="text-right text-sm text-muted-foreground">
+        {!object.isFolder && formatBytes(object.size)}
+      </div>
+      <div className="text-right text-sm text-muted-foreground whitespace-nowrap">
+        {!object.isFolder && new Date(object.lastModified).toLocaleString()}
+      </div>
     </div>
   );
 };
