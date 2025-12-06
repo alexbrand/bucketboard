@@ -72,6 +72,7 @@ export class AWSS3Provider implements StorageProvider {
       return (response.Buckets || []).map((bucket) => ({
         name: bucket.Name || '',
         creationDate: bucket.CreationDate,
+        region: this.region,
       }));
     } catch (error) {
       console.error('Error listing buckets:', error);

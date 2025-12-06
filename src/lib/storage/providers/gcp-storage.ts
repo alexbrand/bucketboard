@@ -39,12 +39,31 @@ export class GCPStorageProvider implements StorageProvider {
     try {
       const [buckets] = await this.client.getBuckets();
 
-      return buckets.map((bucket) => ({
-        name: bucket.name,
-        creationDate: bucket.metadata.timeCreated
-          ? new Date(bucket.metadata.timeCreated)
-          : undefined,
-      }));
+      return buckets.map((bucket) => {
+        // GCP bucket metadata includes location and locationType
+        // location can be a single region (e.g., "us-central1") or multi-region (e.g., "US", "EU", "ASIA")
+        // locationType indicates if it's "region" or "multi-region"
+        const location = bucket.metadata.location as string | undefined;
+        const locationType = bucket.metadata.locationType as string | undefined;
+        
+        // Format region string: if it's a region, use it directly; if multi-region, prefix with "multi-"
+        let region: string | undefined;
+        if (location) {
+          if (locationType === 'multi-region') {
+            region = `multi-${location}`;
+          } else {
+            region = location;
+          }
+        }
+
+        return {
+          name: bucket.name,
+          creationDate: bucket.metadata.timeCreated
+            ? new Date(bucket.metadata.timeCreated)
+            : undefined,
+          region,
+        };
+      });
     } catch (error) {
       console.error('Error listing buckets:', error);
       throw new Error(

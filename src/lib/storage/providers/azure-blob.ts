@@ -45,12 +45,17 @@ export class AzureBlobProvider implements StorageProvider {
 
   async listBuckets(): Promise<Bucket[]> {
     try {
+      // Note: Azure Blob Storage location is at the storage account level, not container level.
+      // To get the location, we would need to use the Azure Resource Manager API, which requires
+      // additional credentials (subscription ID, resource group) that are not in the current
+      // credential structure. For now, region will be undefined for Azure containers.
       const buckets: Bucket[] = [];
 
       for await (const container of this.client.listContainers()) {
         buckets.push({
           name: container.name,
           creationDate: container.properties.lastModified,
+          // region is undefined - would require Azure Resource Manager API access
         });
       }
 

@@ -59,8 +59,7 @@
 - [x] Create storage analytics dashboard with usage insights
 - [x] Add concurrent upload/download with progress tracking
 - [x] Implement virtual scrolling for large object lists
-- [ ] Build ACL and permissions management interface
-- [ ] Add multi-region bucket support
+- [x] Add multi-region bucket support
 
 ### Performance & Polish
 
