@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createStorageProvider } from '@/lib/storage/provider-factory';
-import { StorageCredentials } from '@/lib/types/credentials';
+import { Credentials } from '@/lib/types/credentials';
 import { substituteEnvVarsInObject } from '@/lib/utils/env-substitution';
 import { credentialManager } from '@/lib/storage/credential-store';
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    let credentials: StorageCredentials;
+    let credentials: Credentials;
 
     // Check if testing by credential ID or by raw credentials
     if (body.credentialId) {
@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
       credentials = storedCredential;
     } else {
       // Use the provided credentials
-      credentials = body as StorageCredentials;
+      credentials = body as Credentials;
     }
 
     // Substitute environment variables in the credentials

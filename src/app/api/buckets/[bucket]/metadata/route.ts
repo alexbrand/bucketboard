@@ -36,8 +36,8 @@ export async function GET(request: NextRequest, context: RouteContext) {
 
     return NextResponse.json({
       bucket,
-      key,
       ...metadata,
+      key, // Override if metadata contains key
     });
   } catch (error) {
     console.error('Error getting object metadata:', error);

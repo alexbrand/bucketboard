@@ -2,12 +2,16 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createStorageProvider } from '@/lib/storage/provider-factory';
 import { credentialManager } from '@/lib/storage/credential-store';
 
+type RouteContext = {
+  params: Promise<{ bucket: string }>;
+};
+
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { bucket: string } }
+  context: RouteContext
 ) {
   try {
-    const { bucket } = params;
+    const { bucket } = await context.params;
     const body = await request.json();
     const { credentialId, key, metadata, tags, storageClass, contentType } = body;
 

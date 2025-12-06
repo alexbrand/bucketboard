@@ -175,6 +175,16 @@ export class GCPStorageProvider implements StorageProvider {
       const file = this.client.bucket(bucket).file(key);
       const [metadata] = await file.getMetadata();
 
+      // Convert metadata values to strings
+      const metadataRecord: Record<string, string> = {};
+      if (metadata.metadata) {
+        for (const [key, value] of Object.entries(metadata.metadata)) {
+          if (value !== null && value !== undefined) {
+            metadataRecord[key] = String(value);
+          }
+        }
+      }
+
       return {
         key,
         size: Number(metadata.size) || 0,
@@ -182,7 +192,7 @@ export class GCPStorageProvider implements StorageProvider {
         etag: metadata.etag,
         storageClass: metadata.storageClass,
         contentType: metadata.contentType,
-        metadata: metadata.metadata || {},
+        metadata: metadataRecord,
         // GCP doesn't have tags like S3/Azure, but uses labels on the bucket level
         tags: {},
         isFolder: false,

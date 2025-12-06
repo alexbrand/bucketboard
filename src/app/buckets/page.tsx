@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { StorageProvider } from '@/lib/types/credentials';
+import { ProgressTracker, FileProgress } from '@/components/ProgressTracker';
+import { VirtualizedObjectList } from '@/components/VirtualizedObjectList';
 
 interface Credential {
   id: string;
@@ -189,6 +191,7 @@ interface StorageObject {
 interface ObjectMetadata extends StorageObject {
   contentType?: string;
   metadata?: Record<string, string>;
+  tags?: Record<string, string>;
 }
 
 function ObjectBrowser({ bucketName, credentialId }: ObjectBrowserProps) {
@@ -216,6 +219,10 @@ function ObjectBrowser({ bucketName, credentialId }: ObjectBrowserProps) {
   const [editedStorageClass, setEditedStorageClass] = useState<string>('');
   const [editedContentType, setEditedContentType] = useState<string>('');
   const [savingMetadata, setSavingMetadata] = useState(false);
+
+  // Progress tracking state
+  const [fileProgress, setFileProgress] = useState<FileProgress[]>([]);
+  const [abortControllers, setAbortControllers] = useState<Map<string, AbortController>>(new Map());
 
   useEffect(() => {
     loadObjects();
@@ -290,33 +297,159 @@ function ObjectBrowser({ bucketName, credentialId }: ObjectBrowserProps) {
     if (!files || files.length === 0) return;
 
     setUploadingFile(true);
-    try {
-      for (const file of Array.from(files)) {
+    const filesToUpload = Array.from(files);
+    
+    // Initialize progress tracking for all files
+    const initialProgress: FileProgress[] = filesToUpload.map((file, index) => ({
+      id: `upload-${Date.now()}-${index}`,
+      filename: file.name,
+      progress: 0,
+      status: 'pending' as const,
+      size: file.size,
+      loaded: 0,
+      type: 'upload' as const,
+    }));
+    
+    setFileProgress((prev) => [...prev, ...initialProgress]);
+
+    // Upload files concurrently (max 5 at a time)
+    const maxConcurrent = 5;
+    const uploadQueue = [...filesToUpload];
+    const activeUploads: Promise<void>[] = [];
+
+    const uploadFile = async (file: File, progressItem: FileProgress) => {
+      const abortController = new AbortController();
+      setAbortControllers((prev) => new Map(prev).set(progressItem.id, abortController));
+
+      try {
+        // Update status to uploading
+        setFileProgress((prev) =>
+          prev.map((item) =>
+            item.id === progressItem.id ? { ...item, status: 'uploading' as const } : item
+          )
+        );
+
         const formData = new FormData();
         formData.append('file', file);
         formData.append('key', currentPrefix + file.name);
 
-        const response = await fetch(
-          `/api/buckets/${bucketName}/objects?credentialId=${credentialId}`,
-          {
-            method: 'POST',
-            body: formData,
-          }
-        );
+        // Create XMLHttpRequest for progress tracking
+        await new Promise<void>((resolve, reject) => {
+          const xhr = new XMLHttpRequest();
 
-        if (!response.ok) {
-          const error = await response.json();
-          alert(`Error uploading ${file.name}: ${error.error}`);
+          // Track upload progress
+          xhr.upload.addEventListener('progress', (e) => {
+            if (e.lengthComputable) {
+              const percentComplete = Math.round((e.loaded / e.total) * 100);
+              setFileProgress((prev) =>
+                prev.map((item) =>
+                  item.id === progressItem.id
+                    ? { ...item, progress: percentComplete, loaded: e.loaded }
+                    : item
+                )
+              );
+            }
+          });
+
+          xhr.addEventListener('load', () => {
+            if (xhr.status >= 200 && xhr.status < 300) {
+              setFileProgress((prev) =>
+                prev.map((item) =>
+                  item.id === progressItem.id
+                    ? { ...item, status: 'completed' as const, progress: 100, loaded: file.size }
+                    : item
+                )
+              );
+              resolve();
+            } else {
+              let errorMessage = 'Upload failed';
+              try {
+                const response = JSON.parse(xhr.responseText);
+                errorMessage = response.error || errorMessage;
+              } catch (e) {
+                // Ignore JSON parse errors
+              }
+              setFileProgress((prev) =>
+                prev.map((item) =>
+                  item.id === progressItem.id
+                    ? { ...item, status: 'error' as const, error: errorMessage }
+                    : item
+                )
+              );
+              reject(new Error(errorMessage));
+            }
+          });
+
+          xhr.addEventListener('error', () => {
+            setFileProgress((prev) =>
+              prev.map((item) =>
+                item.id === progressItem.id
+                  ? { ...item, status: 'error' as const, error: 'Network error' }
+                  : item
+              )
+            );
+            reject(new Error('Network error'));
+          });
+
+          xhr.addEventListener('abort', () => {
+            setFileProgress((prev) =>
+              prev.map((item) =>
+                item.id === progressItem.id
+                  ? { ...item, status: 'error' as const, error: 'Upload cancelled' }
+                  : item
+              )
+            );
+            reject(new Error('Upload cancelled'));
+          });
+
+          abortController.signal.addEventListener('abort', () => {
+            xhr.abort();
+          });
+
+          xhr.open('POST', `/api/buckets/${bucketName}/objects?credentialId=${credentialId}`);
+          xhr.send(formData);
+        });
+      } catch (error) {
+        console.error(`Error uploading ${file.name}:`, error);
+      } finally {
+        setAbortControllers((prev) => {
+          const newMap = new Map(prev);
+          newMap.delete(progressItem.id);
+          return newMap;
+        });
+      }
+    };
+
+    // Process uploads with concurrency limit
+    while (uploadQueue.length > 0 || activeUploads.length > 0) {
+      // Fill up to max concurrent uploads
+      while (activeUploads.length < maxConcurrent && uploadQueue.length > 0) {
+        const file = uploadQueue.shift()!;
+        const progressItem = initialProgress[filesToUpload.indexOf(file)];
+        const uploadPromise = uploadFile(file, progressItem);
+        activeUploads.push(uploadPromise);
+      }
+
+      // Wait for at least one upload to complete
+      if (activeUploads.length > 0) {
+        await Promise.race(activeUploads);
+        // Remove completed uploads
+        const completedIndices: number[] = [];
+        for (let i = 0; i < activeUploads.length; i++) {
+          const settled = await Promise.allSettled([activeUploads[i]]);
+          if (settled[0].status === 'fulfilled' || settled[0].status === 'rejected') {
+            completedIndices.push(i);
+          }
+        }
+        for (let i = completedIndices.length - 1; i >= 0; i--) {
+          activeUploads.splice(completedIndices[i], 1);
         }
       }
-      await loadObjects();
-    } catch (error) {
-      console.error('Error uploading files:', error);
-      alert('Failed to upload files');
-    } finally {
-      setUploadingFile(false);
-      event.target.value = '';
     }
+
+    setUploadingFile(false);
+    event.target.value = '';
+    await loadObjects();
   };
 
   const handleDeleteSelected = async () => {
@@ -370,24 +503,139 @@ function ObjectBrowser({ bucketName, credentialId }: ObjectBrowserProps) {
       }
     }
 
-    // Download each file sequentially
-    for (const key of filesToDownload) {
+    // Initialize progress tracking for all files
+    const initialProgress: FileProgress[] = filesToDownload.map((key, index) => {
+      const obj = objects.find((o) => o.key === key);
+      return {
+        id: `download-${Date.now()}-${index}`,
+        filename: key.split('/').pop() || 'download',
+        progress: 0,
+        status: 'pending' as const,
+        size: obj?.size,
+        loaded: 0,
+        type: 'download' as const,
+      };
+    });
+
+    setFileProgress((prev) => [...prev, ...initialProgress]);
+
+    // Download files concurrently (max 3 at a time to avoid browser limits)
+    const maxConcurrent = 3;
+    const downloadQueue = [...filesToDownload];
+    const activeDownloads: Promise<void>[] = [];
+
+    const downloadFile = async (key: string, progressItem: FileProgress) => {
+      const abortController = new AbortController();
+      setAbortControllers((prev) => new Map(prev).set(progressItem.id, abortController));
+
       try {
+        // Update status to downloading
+        setFileProgress((prev) =>
+          prev.map((item) =>
+            item.id === progressItem.id ? { ...item, status: 'downloading' as const } : item
+          )
+        );
+
+        // Use fetch with progress tracking
+        const response = await fetch(
+          `/api/buckets/${bucketName}/download?credentialId=${credentialId}&key=${encodeURIComponent(key)}`,
+          { signal: abortController.signal }
+        );
+
+        if (!response.ok) {
+          throw new Error(`Download failed: ${response.statusText}`);
+        }
+
+        const contentLength = response.headers.get('content-length');
+        const total = contentLength ? parseInt(contentLength, 10) : progressItem.size || 0;
+
+        // Read the response stream with progress tracking
+        const reader = response.body?.getReader();
+        const chunks: BlobPart[] = [];
+        let loaded = 0;
+
+        if (reader) {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            chunks.push(value);
+            loaded += value.length;
+
+            const percentComplete = total > 0 ? Math.round((loaded / total) * 100) : 0;
+            setFileProgress((prev) =>
+              prev.map((item) =>
+                item.id === progressItem.id
+                  ? { ...item, progress: percentComplete, loaded, size: total }
+                  : item
+              )
+            );
+          }
+        }
+
+        // Create blob and download
+        const blob = new Blob(chunks);
+        const url = window.URL.createObjectURL(blob);
         const link = document.createElement('a');
-        link.href = `/api/buckets/${bucketName}/download?credentialId=${credentialId}&key=${encodeURIComponent(key)}`;
-        link.download = key.split('/').pop() || 'download';
+        link.href = url;
+        link.download = progressItem.filename;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
 
-        // Add a small delay between downloads to avoid overwhelming the browser
-        await new Promise((resolve) => setTimeout(resolve, 300));
+        setFileProgress((prev) =>
+          prev.map((item) =>
+            item.id === progressItem.id
+              ? { ...item, status: 'completed' as const, progress: 100, loaded: total }
+              : item
+          )
+        );
       } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Download failed';
         console.error(`Error downloading ${key}:`, error);
+        setFileProgress((prev) =>
+          prev.map((item) =>
+            item.id === progressItem.id
+              ? { ...item, status: 'error' as const, error: errorMessage }
+              : item
+          )
+        );
+      } finally {
+        setAbortControllers((prev) => {
+          const newMap = new Map(prev);
+          newMap.delete(progressItem.id);
+          return newMap;
+        });
+      }
+    };
+
+    // Process downloads with concurrency limit
+    while (downloadQueue.length > 0 || activeDownloads.length > 0) {
+      // Fill up to max concurrent downloads
+      while (activeDownloads.length < maxConcurrent && downloadQueue.length > 0) {
+        const key = downloadQueue.shift()!;
+        const progressItem = initialProgress[filesToDownload.indexOf(key)];
+        const downloadPromise = downloadFile(key, progressItem);
+        activeDownloads.push(downloadPromise);
+      }
+
+      // Wait for at least one download to complete
+      if (activeDownloads.length > 0) {
+        await Promise.race(activeDownloads);
+        // Remove completed downloads
+        const completedIndices: number[] = [];
+        for (let i = 0; i < activeDownloads.length; i++) {
+          const settled = await Promise.allSettled([activeDownloads[i]]);
+          if (settled[0].status === 'fulfilled' || settled[0].status === 'rejected') {
+            completedIndices.push(i);
+          }
+        }
+        for (let i = completedIndices.length - 1; i >= 0; i--) {
+          activeDownloads.splice(completedIndices[i], 1);
+        }
       }
     }
-
-    alert(`Started downloading ${filesToDownload.length} file(s)`);
   };
 
   const toggleFileSelection = (key: string) => {
@@ -497,6 +745,23 @@ function ObjectBrowser({ bucketName, credentialId }: ObjectBrowserProps) {
     setEditedTags(newTags);
   };
 
+  const handleCancelTransfer = (id: string) => {
+    const controller = abortControllers.get(id);
+    if (controller) {
+      controller.abort();
+    }
+  };
+
+  const handleCloseProgressTracker = () => {
+    // Only allow closing if no active transfers
+    const hasActiveTransfers = fileProgress.some(
+      (item) => item.status === 'uploading' || item.status === 'downloading' || item.status === 'pending'
+    );
+    if (!hasActiveTransfers) {
+      setFileProgress([]);
+    }
+  };
+
   const formatBytes = (bytes: number): string => {
     if (bytes === 0) return '0 Bytes';
     const k = 1024;
@@ -590,9 +855,15 @@ function ObjectBrowser({ bucketName, credentialId }: ObjectBrowserProps) {
     }));
 
   return (
-    <div className="space-y-6">
-      {/* Header with breadcrumbs and actions */}
-      <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-950">
+    <>
+      <ProgressTracker
+        items={fileProgress}
+        onClose={handleCloseProgressTracker}
+        onCancel={handleCancelTransfer}
+      />
+      <div className="space-y-6">
+        {/* Header with breadcrumbs and actions */}
+        <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-950">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <button
@@ -940,95 +1211,17 @@ function ObjectBrowser({ bucketName, credentialId }: ObjectBrowserProps) {
                 )}
               </div>
             ) : (
-              <div className="overflow-hidden">
-                {currentPrefix && (
-                  <button
-                    onClick={navigateUp}
-                    className="flex w-full items-center border-b border-gray-200 px-6 py-3 text-left hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-gray-900"
-                  >
-                    <svg
-                      className="h-5 w-5 text-gray-400"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M10 19l-7-7m0 0l7-7m-7 7h18"
-                      />
-                    </svg>
-                    <span className="ml-3 text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Go up
-                    </span>
-                  </button>
-                )}
-                <div className="divide-y divide-gray-200 dark:divide-gray-800">
-                  {filteredObjects.map((object) => (
-                    <div
-                      key={object.key}
-                      className={`flex items-center px-6 py-3 hover:bg-gray-50 dark:hover:bg-gray-900 ${
-                        selectedObject?.key === object.key ? 'bg-blue-50 dark:bg-blue-900/20' : ''
-                      }`}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={selectedFiles.has(object.key)}
-                        onChange={() => toggleFileSelection(object.key)}
-                        className="mr-3 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                      />
-                      <button
-                        onClick={() =>
-                          object.isFolder ? navigateToFolder(object.key) : viewObjectMetadata(object)
-                        }
-                        className="flex flex-1 items-center"
-                      >
-                        {object.isFolder ? (
-                          <svg
-                            className="h-5 w-5 text-blue-500"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"
-                            />
-                          </svg>
-                        ) : (
-                          <svg
-                            className="h-5 w-5 text-gray-400"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                            />
-                          </svg>
-                        )}
-                        <div className="ml-3 flex-1 text-left">
-                          <p className="text-sm font-medium text-gray-900 dark:text-white">
-                            {object.key.split('/').filter(Boolean).pop()}
-                          </p>
-                          {!object.isFolder && (
-                            <p className="text-xs text-gray-500 dark:text-gray-400">
-                              {formatBytes(object.size)} •{' '}
-                              {new Date(object.lastModified).toLocaleString()}
-                            </p>
-                          )}
-                        </div>
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
+              <VirtualizedObjectList
+                objects={filteredObjects}
+                selectedFiles={selectedFiles}
+                selectedObject={selectedObject}
+                onToggleFileSelection={toggleFileSelection}
+                onNavigateToFolder={navigateToFolder}
+                onViewObjectMetadata={viewObjectMetadata}
+                formatBytes={formatBytes}
+                showNavigateUp={!!currentPrefix}
+                onNavigateUp={navigateUp}
+              />
             )}
           </div>
         </div>
@@ -1326,6 +1519,7 @@ function ObjectBrowser({ bucketName, credentialId }: ObjectBrowserProps) {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 }

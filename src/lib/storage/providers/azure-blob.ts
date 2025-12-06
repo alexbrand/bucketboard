@@ -207,7 +207,6 @@ export class AzureBlobProvider implements StorageProvider {
         etag: properties.etag,
         contentType: properties.contentType,
         metadata: properties.metadata || {},
-        tags: properties.tags || {},
         isFolder: false,
       };
     } catch (error) {
