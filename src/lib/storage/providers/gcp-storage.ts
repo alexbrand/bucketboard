@@ -10,13 +10,20 @@ export class GCPStorageProvider implements StorageProvider {
   constructor(credentials: GCPStorageCredentials) {
     this.projectId = credentials.config.projectId;
 
-    this.client = new Storage({
+    const storageConfig: any = {
       projectId: credentials.config.projectId,
       credentials: {
         client_email: credentials.config.clientEmail,
         private_key: credentials.config.privateKey,
       },
-    });
+    };
+
+    // Use custom endpoint if provided (for fake-gcs-server)
+    if (credentials.config.apiEndpoint) {
+      storageConfig.apiEndpoint = credentials.config.apiEndpoint;
+    }
+
+    this.client = new Storage(storageConfig);
   }
 
   async testConnection(): Promise<{ success: boolean; message: string }> {

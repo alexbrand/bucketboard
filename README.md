@@ -86,7 +86,43 @@ Support for all major cloud storage platforms:
 
 ## Getting Started
 
-_(Setup and installation instructions will be added as the project develops)_
+### Installation
+
+1. Install dependencies:
+   ```bash
+   pnpm install
+   ```
+
+2. Run the development server:
+   ```bash
+   pnpm dev
+   ```
+
+3. Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+### Local Testing with Docker Compose
+
+For local testing without connecting to real cloud services, you can use the included Docker Compose setup with emulators for all three providers:
+
+1. Start the emulators:
+   ```bash
+   docker compose up -d
+   ```
+
+2. Configure credentials (see `DOCKER_SETUP.md` for detailed instructions):
+   ```bash
+   mkdir -p data
+   cp credentials.yaml.example data/credentials.yaml
+   ```
+
+3. Start the application and test against the local emulators.
+
+4. Seed buckets with test data (optional):
+   ```bash
+   pnpm seed localstack-s3 test-bucket --count 100
+   ```
+
+See [DOCKER_SETUP.md](./DOCKER_SETUP.md) for complete setup instructions and [scripts/README.md](./scripts/README.md) for seeding script documentation.
 
 ## Contributing
 

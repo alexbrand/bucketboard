@@ -1,0 +1,81 @@
+services:
+  # AWS S3 Emulator (LocalStack)
+  localstack:
+    image: localstack/localstack:latest
+    container_name: bucketboard-localstack
+    ports:
+      - "4566:4566"            # LocalStack Gateway
+      - "4510-4559:4510-4559"  # External services port range
+    environment:
+      - SERVICES=s3
+      - DEBUG=1
+      - DATA_DIR=/var/lib/localstack/data
+      - DOCKER_HOST=unix:///var/run/docker.sock
+      - PERSISTENCE=1
+      - TMPDIR=/var/lib/localstack/tmp
+    volumes:
+      - localstack-data:/var/lib/localstack
+      - /var/run/docker.sock:/var/run/docker.sock
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:4566/_localstack/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - bucketboard-network
+
+  # Azure Blob Storage Emulator (Azurite)
+  azurite:
+    image: mcr.microsoft.com/azure-storage/azurite:latest
+    container_name: bucketboard-azurite
+    ports:
+      - "10000:10000"  # Blob service
+      - "10001:10001"  # Queue service (not used, but Azurite requires it)
+      - "10002:10002"  # Table service (not used, but Azurite requires it)
+    environment:
+      - AZURITE_ACCOUNTS=devstoreaccount1:Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==
+    volumes:
+      - azurite-data:/data
+    command: azurite --blobHost 0.0.0.0 --queueHost 0.0.0.0 --tableHost 0.0.0.0 --location /data --debug /data/debug.log
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z localhost 10000 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - bucketboard-network
+
+  # Google Cloud Storage Emulator (fake-gcs-server)
+  fake-gcs:
+    image: fsouza/fake-gcs-server:latest
+    container_name: bucketboard-fake-gcs
+    ports:
+      - "4443:4443"  # HTTP API
+      - "9023:9023"  # gRPC API (optional, for advanced features)
+    environment:
+      - PORT=4443
+      - HOST=0.0.0.0
+      - SCHEME=http
+      - EXTERNAL_URL=http://localhost:4443
+    volumes:
+      - fake-gcs-data:/storage
+    command: -scheme http -host 0.0.0.0 -port 4443 -backend memory -filesystem-root /storage
+    healthcheck:
+      test: ["CMD-SHELL", "wget --spider -q http://localhost:4443/storage/v1/b || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - bucketboard-network
+
+volumes:
+  localstack-data:
+    driver: local
+  azurite-data:
+    driver: local
+  fake-gcs-data:
+    driver: local
+
+networks:
+  bucketboard-network:
+    driver: bridge

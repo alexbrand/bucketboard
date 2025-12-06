@@ -20,8 +20,13 @@ export class AzureBlobProvider implements StorageProvider {
       credentials.config.accountKey
     );
 
+    // Use custom endpoint if provided (for Azurite), otherwise use default Azure endpoint
+    const endpoint = credentials.config.endpoint 
+      ? credentials.config.endpoint
+      : `https://${credentials.config.accountName}.blob.core.windows.net`;
+
     this.client = new BlobServiceClient(
-      `https://${credentials.config.accountName}.blob.core.windows.net`,
+      endpoint,
       sharedKeyCredential
     );
   }

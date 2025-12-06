@@ -26,6 +26,7 @@ export interface AzureBlobCredentials extends CredentialBase {
   config: {
     accountName: string;
     accountKey: string;
+    endpoint?: string; // Optional - for Azurite or custom endpoints
   };
 }
 
@@ -35,6 +36,7 @@ export interface GCPStorageCredentials extends CredentialBase {
     projectId: string;
     clientEmail: string;
     privateKey: string;
+    apiEndpoint?: string; // Optional - for fake-gcs-server or custom endpoints
   };
 }
 
