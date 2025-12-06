@@ -108,9 +108,10 @@ export default function BucketsPage() {
   const endIndex = startIndex + itemsPerPage;
   const paginatedBuckets = buckets.slice(startIndex, endIndex);
 
-  // Reset to page 1 when credential changes or buckets data changes
+  // Reset to page 1 and clear selected bucket when credential changes
   useEffect(() => {
     setCurrentPage(1);
+    setSelectedBucket('');
   }, [selectedCredentialId, buckets.length]);
 
   if (credentialsLoading) {
