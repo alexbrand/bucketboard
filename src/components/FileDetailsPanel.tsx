@@ -215,17 +215,6 @@ export function FileDetailsPanel({
               Name
             </p>
             <div className="mt-2 flex items-center gap-3">
-              {(() => {
-                const IconComponent = getFileIcon(selectedObject.key, selectedObject.isFolder || false);
-                return (
-                  <IconComponent
-                    className={cn(
-                      'h-6 w-6 flex-shrink-0',
-                      selectedObject.isFolder ? 'text-primary' : 'text-muted-foreground'
-                    )}
-                  />
-                );
-              })()}
               <p className="break-all text-sm font-medium">
                 {selectedObject.key.split('/').filter(Boolean).pop()}
               </p>
