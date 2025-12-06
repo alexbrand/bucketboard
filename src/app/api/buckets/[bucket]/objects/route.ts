@@ -28,7 +28,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
     }
 
     // Create storage provider
-    const provider = createStorageProvider(credential);
+    const provider = await createStorageProvider(credential);
 
     // List objects
     const result = await provider.listObjects({
@@ -77,7 +77,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
     }
 
     // Create storage provider
-    const provider = createStorageProvider(credential);
+    const provider = await createStorageProvider(credential);
 
     // Convert file to buffer
     const arrayBuffer = await file.arrayBuffer();
@@ -123,7 +123,7 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
     }
 
     // Create storage provider
-    const provider = createStorageProvider(credential);
+    const provider = await createStorageProvider(credential);
 
     // Delete objects
     await provider.deleteObjects(bucket, keys);

@@ -30,7 +30,7 @@ export async function PUT(
     }
 
     // Get the storage provider
-    const provider = createStorageProvider(credential);
+    const provider = await createStorageProvider(credential);
 
     // Update metadata
     await provider.updateObjectMetadata(bucket, key, {

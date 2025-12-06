@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Create storage provider
-    const provider = createStorageProvider(credential);
+    const provider = await createStorageProvider(credential);
 
     // List buckets
     const buckets = await provider.listBuckets();

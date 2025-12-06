@@ -1,12 +1,23 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import dynamic from 'next/dynamic';
 import { StorageProvider } from '@/lib/types/credentials';
-import { ProgressTracker, FileProgress } from '@/components/ProgressTracker';
-import { VirtualizedObjectList } from '@/components/VirtualizedObjectList';
+import type { FileProgress } from '@/components/ProgressTracker';
 import { useCachedFetch, createCacheKey, DEFAULT_TTL } from '@/lib/utils/use-cached-fetch';
 import { cacheManager } from '@/lib/utils/cache';
 import { LastUpdated } from '@/components/LastUpdated';
+
+// Lazy load heavy components
+const ProgressTracker = dynamic(
+  () => import('@/components/ProgressTracker').then((mod) => mod.ProgressTracker),
+  { ssr: false }
+);
+
+const VirtualizedObjectList = dynamic(
+  () => import('@/components/VirtualizedObjectList').then((mod) => mod.VirtualizedObjectList),
+  { ssr: false }
+);
 
 interface Credential {
   id: string;

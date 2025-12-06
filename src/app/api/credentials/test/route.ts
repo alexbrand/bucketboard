@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
     const processedCredentials = substituteEnvVarsInObject(credentials);
 
     // Create a provider instance
-    const provider = createStorageProvider(processedCredentials);
+    const provider = await createStorageProvider(processedCredentials);
 
     // Test the connection
     const result = await provider.testConnection();

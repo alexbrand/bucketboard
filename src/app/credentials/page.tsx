@@ -1,10 +1,16 @@
 'use client';
 
 import { useState, useEffect, Fragment } from 'react';
+import dynamic from 'next/dynamic';
 import { StorageProvider } from '@/lib/types/credentials';
-import { CredentialForm } from '@/components/CredentialForm';
 import { useCachedFetch, DEFAULT_TTL } from '@/lib/utils/use-cached-fetch';
 import { cacheManager } from '@/lib/utils/cache';
+
+// Lazy load CredentialForm component
+const CredentialForm = dynamic(
+  () => import('@/components/CredentialForm').then((mod) => mod.CredentialForm),
+  { ssr: false }
+);
 
 interface CredentialSummary {
   id: string;

@@ -29,7 +29,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
     }
 
     // Create storage provider
-    const provider = createStorageProvider(credential);
+    const provider = await createStorageProvider(credential);
 
     // Get object metadata
     const metadata = await provider.getObjectMetadata(bucket, key);

@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get the storage provider
-    const provider = createStorageProvider(credential);
+    const provider = await createStorageProvider(credential);
 
     // Get all buckets
     const buckets = await provider.listBuckets();
