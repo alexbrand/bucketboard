@@ -1,7 +1,7 @@
 'use client';
 
 import { List, useListRef } from 'react-window';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ArrowUp, Folder, File } from 'lucide-react';
@@ -162,7 +162,33 @@ export function VirtualizedObjectList({
   onFocusedIndexChange,
 }: VirtualizedObjectListProps) {
   const listRef = useListRef(null);
-  const [listHeight, setListHeight] = useState(600);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [listHeight, setListHeight] = useState(0);
+
+  // Measure container height dynamically
+  useEffect(() => {
+    const updateHeight = () => {
+      if (containerRef.current) {
+        const height = containerRef.current.clientHeight;
+        if (height > 0) {
+          setListHeight(height);
+        }
+      }
+    };
+
+    // Initial measurement
+    updateHeight();
+
+    // Use ResizeObserver to handle dynamic size changes
+    const resizeObserver = new ResizeObserver(updateHeight);
+    if (containerRef.current) {
+      resizeObserver.observe(containerRef.current);
+    }
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, []);
 
   // Scroll to top when objects change
   useEffect(() => {
@@ -201,16 +227,18 @@ export function VirtualizedObjectList({
   };
 
   return (
-    <div className="overflow-hidden rounded-lg border">
-      <List<RowData>
-        listRef={listRef}
-        defaultHeight={listHeight}
-        rowCount={itemCount}
-        rowHeight={rowHeight}
-        rowComponent={RowComponent}
-        rowProps={rowProps}
-        className="scrollbar-thin"
-      />
+    <div ref={containerRef} className="h-full overflow-hidden rounded-lg border">
+      {listHeight > 0 && (
+        <List<RowData>
+          listRef={listRef}
+          height={listHeight}
+          rowCount={itemCount}
+          rowHeight={rowHeight}
+          rowComponent={RowComponent}
+          rowProps={rowProps}
+          className="scrollbar-thin"
+        />
+      )}
     </div>
   );
 }
