@@ -2,6 +2,7 @@
 
 import { useState, Fragment } from 'react';
 import dynamic from 'next/dynamic';
+import { SimpleSidebar } from '@/components/SimpleSidebar';
 import { StorageProvider } from '@/lib/types/credentials';
 import { useCachedFetch } from '@/lib/utils/use-cached-fetch';
 import { cacheManager } from '@/lib/utils/cache';
@@ -133,8 +134,9 @@ export default function CredentialsPage() {
 
   if (loading) {
     return (
-      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-        <div className="text-center">
+      <div id="credentials-page" className="flex overflow-hidden" style={{ height: '100vh' }}>
+        <SimpleSidebar />
+        <div id="main-content" className="flex flex-1 items-center justify-center">
           <p className="text-muted-foreground">Loading credentials...</p>
         </div>
       </div>
@@ -142,7 +144,9 @@ export default function CredentialsPage() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+    <div id="credentials-page" className="flex overflow-hidden" style={{ height: '100vh' }}>
+      <SimpleSidebar />
+      <div id="main-content" className="flex-1 overflow-y-auto p-8">
       <div className="sm:flex sm:items-center sm:justify-between">
         <div>
           <h1 className="text-3xl font-bold">Credentials</h1>
@@ -273,6 +277,7 @@ export default function CredentialsPage() {
             </Table>
           </Card>
         )}
+      </div>
       </div>
     </div>
   );

@@ -79,7 +79,7 @@ const RowComponent = ({
           variant="ghost"
           onClick={onNavigateUp}
           className={cn(
-            'w-full justify-start border-b rounded-none',
+            'w-full justify-start rounded-none',
             isFocused && 'ring-2 ring-inset ring-ring'
           )}
         >

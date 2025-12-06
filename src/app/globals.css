@@ -89,4 +89,18 @@
     @apply bg-background text-foreground;
     font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
   }
+
+  /* Safari-specific fixes for flexbox */
+  @supports (-webkit-appearance: none) {
+    .flex {
+      -webkit-box-orient: vertical;
+      -webkit-box-direction: normal;
+    }
+  }
+
+  /* Ensure consistent border rendering across browsers */
+  aside {
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+  }
 }

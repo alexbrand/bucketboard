@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { SimpleSidebar } from '@/components/SimpleSidebar';
 import { StorageProvider } from '@/lib/types/credentials';
 import { useCachedFetch, createCacheKey, DEFAULT_TTL } from '@/lib/utils/use-cached-fetch';
 import { Button } from '@/components/ui/button';
@@ -115,10 +116,13 @@ export default function AnalyticsPage() {
 
   if (credentialsLoading) {
     return (
-      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-        <div className="text-center">
-          <Loader2 className="mx-auto h-8 w-8 animate-spin text-primary" />
-          <p className="mt-2 text-muted-foreground">Loading credentials...</p>
+      <div id="analytics-page" className="flex overflow-hidden" style={{ height: '100vh' }}>
+        <SimpleSidebar />
+        <div id="main-content" className="flex flex-1 items-center justify-center">
+          <div className="text-center">
+            <Loader2 className="mx-auto h-8 w-8 animate-spin text-primary" />
+            <p className="mt-2 text-muted-foreground">Loading credentials...</p>
+          </div>
         </div>
       </div>
     );
@@ -126,16 +130,19 @@ export default function AnalyticsPage() {
 
   if (credentials.length === 0) {
     return (
-      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold">No credentials found</h2>
-          <p className="mt-2 text-muted-foreground">
-            Please add a credential first to view analytics.
-          </p>
-          <div className="mt-6">
-            <Button asChild>
-              <a href="/credentials">Add Credential</a>
-            </Button>
+      <div id="analytics-page" className="flex overflow-hidden" style={{ height: '100vh' }}>
+        <SimpleSidebar />
+        <div id="main-content" className="flex flex-1 items-center justify-center p-8">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold">No credentials found</h2>
+            <p className="mt-2 text-muted-foreground">
+              Please add a credential first to view analytics.
+            </p>
+            <div className="mt-6">
+              <Button asChild>
+                <a href="/credentials">Add Credential</a>
+              </Button>
+            </div>
           </div>
         </div>
       </div>
@@ -143,7 +150,9 @@ export default function AnalyticsPage() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+    <div id="analytics-page" className="flex overflow-hidden" style={{ height: '100vh' }}>
+      <SimpleSidebar />
+      <div id="main-content" className="flex-1 overflow-y-auto p-8">
       <div className="sm:flex sm:items-center sm:justify-between">
         <div>
           <h1 className="text-3xl font-bold">Storage Analytics</h1>
@@ -368,6 +377,7 @@ export default function AnalyticsPage() {
           )}
         </div>
       ) : null}
+      </div>
     </div>
   );
 }

@@ -59,7 +59,10 @@ export function useKeyboardShortcuts(shortcuts: KeyboardShortcut[], enabled: boo
   }, [handleKeyDown, enabled]);
 }
 
-export function formatShortcut(shortcut: KeyboardShortcut): string {
+// Type for formatting shortcuts - only includes properties needed for display
+export type ShortcutForDisplay = Pick<KeyboardShortcut, 'key' | 'ctrlKey' | 'metaKey' | 'shiftKey' | 'altKey'>;
+
+export function formatShortcut(shortcut: ShortcutForDisplay): string {
   const parts: string[] = [];
   const isMac = typeof window !== 'undefined' && (
     navigator.platform?.toUpperCase().indexOf('MAC') >= 0 ||

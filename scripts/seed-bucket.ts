@@ -176,7 +176,7 @@ async function seedBucket(
   console.log(`Include folders: ${options.includeFolders}\n`);
 
   // Create provider
-  const provider = createStorageProvider(credential);
+  const provider = await createStorageProvider(credential);
 
   // Test connection
   console.log('Testing connection...');
