@@ -928,7 +928,6 @@ export default function BucketsPage() {
                 <Button
                   onClick={() => setShowFilters(!showFilters)}
                   variant={showFilters || hasActiveFilters ? 'default' : 'outline'}
-                  size="sm"
                 >
                   <Filter className="mr-2 h-4 w-4" />
                   Filters
