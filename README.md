@@ -9,19 +9,23 @@ BucketBoard is designed to be a fast, intuitive, and powerful interface for expl
 ## Goals
 
 ### High Performance
+
 - **Fast navigation** through large buckets with millions of objects
 - **Efficient data loading** using pagination, virtual scrolling, and lazy loading
 - **Optimized transfers** for upload and download operations
 - **Minimal latency** with intelligent caching and prefetching strategies
 
 ### Full CRUD Operations
+
 - **Create**: Upload files, create folders, and initialize new storage containers
 - **Read**: Browse, search, and preview objects with metadata inspection
 - **Update**: Modify object metadata, permissions, and storage classes
 - **Delete**: Remove objects and containers with batch operations support
 
 ### Multi-Cloud Support
+
 Support for all major cloud storage platforms:
+
 - **AWS S3** - Amazon Simple Storage Service
 - **Azure Blob Storage** - Microsoft Azure Storage
 - **Google Cloud Storage** - GCP object storage
@@ -34,6 +38,7 @@ Support for all major cloud storage platforms:
 ## Key Features
 
 ### Planned Capabilities
+
 - 🚀 **High-performance UI** with responsive design
 - 🔄 **Real-time operations** with progress tracking
 - 🔍 **Advanced search** and filtering capabilities
@@ -48,6 +53,7 @@ Support for all major cloud storage platforms:
 ## Architecture
 
 ### Design Principles
+
 - Simple, fast, and local-first
 - Single-command startup with `npm run dev`
 - Credentials stored securely server-side
@@ -56,21 +62,24 @@ Support for all major cloud storage platforms:
 ### Technology Stack
 
 **Framework**
+
 - **Next.js** - Full-stack React framework with API routes
 - **TypeScript** - Type-safe development
 - **Tailwind CSS** - Utility-first styling
 
 **Cloud SDKs** (server-side)
+
 - **AWS SDK for JavaScript** - S3 and S3-compatible storage
 - **@azure/storage-blob** - Azure Blob Storage
 - **@google-cloud/storage** - Google Cloud Storage
 
 **Development**
+
 - **ESLint** + **Prettier** - Code quality and formatting
 
 ## Getting Started
 
-*(Setup and installation instructions will be added as the project develops)*
+_(Setup and installation instructions will be added as the project develops)_
 
 ## Contributing
 
@@ -78,7 +87,7 @@ Contributions are welcome! Please feel free to submit issues and pull requests.
 
 ## License
 
-*(License information to be added)*
+_(License information to be added)_
 
 ## Roadmap
 
