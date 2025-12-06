@@ -27,7 +27,7 @@ export function SimpleSidebar() {
     >
       {/* Logo/Brand */}
       <div id="sidebar-logo" className="flex-shrink-0 p-4">
-        <Link href="/buckets" className="flex items-center gap-3">
+        <Link href="/buckets" className="flex items-center gap-3 cursor-pointer">
           <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary">
             <Package className="h-6 w-6 text-primary-foreground" />
           </div>

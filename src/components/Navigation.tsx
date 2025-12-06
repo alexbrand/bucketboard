@@ -17,7 +17,7 @@ export function Navigation() {
 
   return (
     <nav className="flex h-12 items-center justify-between border-b bg-background px-4">
-      <Link href="/buckets" className="flex items-center gap-2">
+      <Link href="/buckets" className="flex items-center gap-2 cursor-pointer">
         <div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary">
           <span className="text-sm font-bold text-primary-foreground">B</span>
         </div>

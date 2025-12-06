@@ -80,7 +80,7 @@ const RowComponent = ({
           variant="ghost"
           onClick={onNavigateUp}
           className={cn(
-            'w-full justify-start rounded-none',
+            'w-full justify-start rounded-none cursor-pointer',
             isFocused && 'ring-2 ring-inset ring-ring'
           )}
         >
@@ -106,7 +106,7 @@ const RowComponent = ({
     <div
       style={style}
       className={cn(
-        'grid grid-cols-[auto_1fr_auto_auto] items-center gap-4 border-b px-6 py-3 hover:bg-accent',
+        'grid grid-cols-[auto_1fr_auto_auto] items-center gap-4 border-b px-6 py-3 hover:bg-accent cursor-pointer',
         isSelected && 'bg-primary/5',
         isFocused && 'ring-2 ring-inset ring-ring'
       )}
@@ -127,7 +127,7 @@ const RowComponent = ({
         onClick={() =>
           object.isFolder ? onNavigateToFolder(object.key) : onViewObjectMetadata(object)
         }
-        className="flex items-center min-w-0 text-left"
+        className="flex items-center min-w-0 text-left cursor-pointer"
       >
         {(() => {
           const IconComponent = getFileIcon(object.key, object.isFolder);
