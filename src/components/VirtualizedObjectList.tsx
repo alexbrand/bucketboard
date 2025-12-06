@@ -4,8 +4,9 @@ import { List, useListRef } from 'react-window';
 import { useEffect, useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ArrowUp, Folder, File } from 'lucide-react';
+import { ArrowUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { getFileIcon } from '@/lib/utils/file-icons';
 
 interface StorageObject {
   key: string;
@@ -120,6 +121,7 @@ const RowComponent = ({
       <Checkbox
         checked={selectedFiles.has(object.key)}
         onCheckedChange={() => onToggleFileSelection(object.key)}
+        className="border-muted-foreground/50 data-[state=checked]:bg-muted-foreground data-[state=checked]:text-muted"
       />
       <button
         onClick={() =>
@@ -127,11 +129,17 @@ const RowComponent = ({
         }
         className="flex items-center min-w-0 text-left"
       >
-        {object.isFolder ? (
-          <Folder className="h-5 w-5 flex-shrink-0 text-primary" />
-        ) : (
-          <File className="h-5 w-5 flex-shrink-0 text-muted-foreground" />
-        )}
+        {(() => {
+          const IconComponent = getFileIcon(object.key, object.isFolder);
+          return (
+            <IconComponent
+              className={cn(
+                'h-5 w-5 flex-shrink-0',
+                'text-primary'
+              )}
+            />
+          );
+        })()}
         <span className="ml-3 text-sm font-medium truncate">
           {object.key.split('/').filter(Boolean).pop()}
         </span>

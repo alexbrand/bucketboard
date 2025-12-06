@@ -15,6 +15,8 @@ import {
 } from '@/components/ui/select';
 import { useCachedFetch, createCacheKey, DEFAULT_TTL } from '@/lib/utils/use-cached-fetch';
 import { cacheManager } from '@/lib/utils/cache';
+import { getFileIcon } from '@/lib/utils/file-icons';
+import { cn } from '@/lib/utils';
 
 interface StorageObject {
   key: string;
@@ -212,9 +214,22 @@ export function FileDetailsPanel({
             <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
               Name
             </p>
-            <p className="mt-2 break-all text-sm font-medium">
-              {selectedObject.key.split('/').filter(Boolean).pop()}
-            </p>
+            <div className="mt-2 flex items-center gap-3">
+              {(() => {
+                const IconComponent = getFileIcon(selectedObject.key, selectedObject.isFolder || false);
+                return (
+                  <IconComponent
+                    className={cn(
+                      'h-6 w-6 flex-shrink-0',
+                      selectedObject.isFolder ? 'text-primary' : 'text-muted-foreground'
+                    )}
+                  />
+                );
+              })()}
+              <p className="break-all text-sm font-medium">
+                {selectedObject.key.split('/').filter(Boolean).pop()}
+              </p>
+            </div>
           </div>
 
           {!selectedObject.isFolder && (
