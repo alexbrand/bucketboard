@@ -80,7 +80,7 @@ A beautiful, fixed-position UI component that shows:
 ### Modified Files
 - `src/app/buckets/page.tsx` - Integrated concurrent uploads/downloads
 - `tasks.md` - Marked feature as complete
-- `.implementation-notes.md` - Added detailed documentation
+- `docs/.implementation-notes.md` - Added detailed documentation
 
 ## Testing the Feature
 

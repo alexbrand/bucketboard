@@ -28,7 +28,7 @@ Seamlessly integrated into existing object browser:
 - No breaking changes
 
 ### 3. **Testing Utilities**
-Created: `src/utils/test-data-generator.ts`
+Created: `src/lib/utils/test-data-generator.ts`
 
 Development tools for testing:
 - `generateMockObjects()` - Create test datasets
@@ -36,7 +36,7 @@ Development tools for testing:
 - Support for folders, files, various sizes and types
 
 ### 4. **Documentation**
-Created: `VIRTUAL_SCROLLING_TEST.md`
+Created: `docs/VIRTUAL_SCROLLING_TEST.md`
 
 Comprehensive testing guide covering:
 - Testing methods and strategies
@@ -101,15 +101,15 @@ itemCount: variable  // Based on filtered objects
 
 ### New Files
 - ✨ `src/components/VirtualizedObjectList.tsx` - Main component
-- ✨ `src/utils/test-data-generator.ts` - Testing utilities
-- 📚 `VIRTUAL_SCROLLING_TEST.md` - Testing guide
-- 📚 `VIRTUAL_SCROLLING_SUMMARY.md` - This file
+- ✨ `src/lib/utils/test-data-generator.ts` - Testing utilities
+- 📚 `docs/VIRTUAL_SCROLLING_TEST.md` - Testing guide
+- 📚 `docs/VIRTUAL_SCROLLING_SUMMARY.md` - This file
 
 ### Modified Files
 - 📝 `src/app/buckets/page.tsx` - Integrated virtualized list
 - 📝 `package.json` - Added react-window dependency
 - 📝 `tasks.md` - Marked feature complete
-- 📝 `.implementation-notes.md` - Added documentation
+- 📝 `docs/.implementation-notes.md` - Added documentation
 
 ## Testing Checklist
 
@@ -159,7 +159,7 @@ No configuration or setup needed - it just works.
 ### Quick Test
 ```javascript
 // In browser console (dev mode):
-import { testVirtualScrollingPerformance } from '@/utils/test-data-generator';
+import { testVirtualScrollingPerformance } from '@/lib/utils/test-data-generator';
 testVirtualScrollingPerformance();
 ```
 

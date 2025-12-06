@@ -38,13 +38,6 @@
 - [x] Integrate Google Cloud Storage SDK
 - [x] Build provider connection testing (API endpoint and UI integration with test results)
 
-
-### Cloud Provider Integration (Phase 1)
-
-- [x] Integrate Azure Storage Blob SDK
-- [x] Integrate Google Cloud Storage SDK
-- [x] Build provider connection testing
-
 ### Core CRUD Operations
 
 - [x] Build object browsing with hierarchical folder view

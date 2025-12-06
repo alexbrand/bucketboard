@@ -33,7 +33,7 @@ The test data generator can create mock objects for testing without needing a re
 
 ```javascript
 // Import the test utility (in development environment)
-import { generateMockObjects, testVirtualScrollingPerformance } from '@/utils/test-data-generator';
+import { generateMockObjects, testVirtualScrollingPerformance } from '@/lib/utils/test-data-generator';
 
 // Generate 10,000 mock objects
 const mockObjects = generateMockObjects(10000);

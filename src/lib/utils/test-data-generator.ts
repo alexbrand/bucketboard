@@ -106,7 +106,7 @@ export function testVirtualScrollingPerformance() {
 }
 
 // Example usage in development:
-// import { generateMockObjects, testVirtualScrollingPerformance } from '@/utils/test-data-generator';
+// import { generateMockObjects, testVirtualScrollingPerformance } from '@/lib/utils/test-data-generator';
 // 
 // In a component:
 // const mockObjects = generateMockObjects(10000);

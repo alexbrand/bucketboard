@@ -12,9 +12,6 @@ const nextConfig: NextConfig = {
     ],
   },
 
-  // Turbopack configuration (Next.js 16+ default)
-  turbopack: {},
-
   // Compress static assets
   compress: true,
 

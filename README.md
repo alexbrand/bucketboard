@@ -54,8 +54,7 @@ Support for all major cloud storage platforms:
 ### Planned Capabilities
 
 - 🎨 **Enhanced interface** for managing permissions and ACLs
-- 🌙 **Dark mode** support
-- 👁️ **File preview** capabilities (images, text files)
+- 🌙 **Dark mode** support (ThemeProvider component exists, needs full implementation)
 
 ## Architecture
 
@@ -148,17 +147,15 @@ _(License information to be added)_
 
 ## Roadmap
 
-- [ ] Core infrastructure setup
-- [ ] AWS S3 integration
-- [ ] Azure Blob Storage integration
-- [ ] Google Cloud Storage integration
-- [ ] High-performance UI implementation
-- [ ] Batch operations support
-- [ ] Search and filtering capabilities
-- [ ] Metadata management
-- [ ] Storage analytics dashboard
-- [ ] Multi-cloud credential management
+See [tasks.md](./tasks.md) for detailed implementation status. Most core features are complete including:
 
----
+- ✅ Core infrastructure setup
+- ✅ AWS S3, Azure Blob Storage, and Google Cloud Storage integration
+- ✅ High-performance UI with virtual scrolling
+- ✅ Batch operations support
+- ✅ Search and filtering capabilities
+- ✅ Metadata management
+- ✅ Storage analytics dashboard
+- ✅ Multi-cloud credential management
 
-**Status**: 🚧 Project in early development
+**Status**: 🚀 Core features complete, ready for use
