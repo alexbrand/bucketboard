@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, Fragment } from 'react';
 import dynamic from 'next/dynamic';
 import { AppSidebar } from '@/components/AppSidebar';
 import { FileDetailsPanel } from '@/components/FileDetailsPanel';
@@ -18,6 +18,7 @@ import {
   Loader2,
   RefreshCw,
   FolderPlus,
+  Folder,
   Upload,
   Search,
   Filter,
@@ -1021,21 +1022,24 @@ export default function BucketsPage() {
                   <Button
                     variant="link"
                     onClick={() => setCurrentPrefix('')}
-                    className="h-auto p-0 text-sm font-semibold"
+                    className="h-auto p-0 group hover:no-underline"
                   >
-                    {selectedBucket}
-                  </Button>
-                  {breadcrumbs.map((crumb) => (
-                    <div key={crumb.path} className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-2 border-b border-transparent group-hover:border-muted-foreground">
+                      <Folder className="h-4 w-4 text-muted-foreground" />
                       <span className="text-muted-foreground">/</span>
+                    </div>
+                  </Button>
+                  {breadcrumbs.map((crumb, index) => (
+                    <Fragment key={crumb.path}>
+                      {index > 0 && <span className="text-muted-foreground">/</span>}
                       <Button
                         variant="link"
                         onClick={() => navigateToFolder(crumb.path)}
-                        className="h-auto p-0 text-sm"
+                        className={`h-auto p-0 text-sm ${index === breadcrumbs.length - 1 ? '' : 'text-muted-foreground'}`}
                       >
                         {crumb.name}
                       </Button>
-                    </div>
+                    </Fragment>
                   ))}
                 </div>
 
