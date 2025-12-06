@@ -37,18 +37,25 @@ Support for all major cloud storage platforms:
 
 ## Key Features
 
-### Planned Capabilities
+### Implemented
 
-- 🚀 **High-performance UI** with responsive design
+- 🚀 **High-performance UI** with responsive design and virtual scrolling
 - 🔄 **Real-time operations** with progress tracking
 - 🔍 **Advanced search** and filtering capabilities
 - 📊 **Metadata management** and bulk operations
 - 🔐 **Secure authentication** with multiple credential management
 - 📁 **Hierarchical folder views** despite flat object structure
 - ⚡ **Concurrent operations** for improved throughput
-- 🎨 **Intuitive interface** for managing permissions and ACLs
 - 📈 **Storage analytics** and usage insights
 - 🔄 **Multi-region support** for global deployments
+- ⌨️ **Keyboard shortcuts** for efficient navigation and actions ([See full documentation](KEYBOARD_SHORTCUTS.md))
+- 💾 **Intelligent caching** with prefetching for optimal performance
+
+### Planned Capabilities
+
+- 🎨 **Enhanced interface** for managing permissions and ACLs
+- 🌙 **Dark mode** support
+- 👁️ **File preview** capabilities (images, text files)
 
 ## Architecture
 

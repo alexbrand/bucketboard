@@ -1,12 +1,14 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import { StorageProvider } from '@/lib/types/credentials';
 import type { FileProgress } from '@/components/ProgressTracker';
 import { useCachedFetch, createCacheKey, DEFAULT_TTL } from '@/lib/utils/use-cached-fetch';
 import { cacheManager } from '@/lib/utils/cache';
 import { LastUpdated } from '@/components/LastUpdated';
+import { useKeyboardShortcuts, KeyboardShortcut } from '@/lib/utils/use-keyboard-shortcuts';
+import { KeyboardShortcutsHelp } from '@/components/KeyboardShortcutsHelp';
 
 // Lazy load heavy components
 const ProgressTracker = dynamic(
@@ -429,6 +431,16 @@ function ObjectBrowser({ bucketName, credentialId }: ObjectBrowserProps) {
   // Progress tracking state
   const [fileProgress, setFileProgress] = useState<FileProgress[]>([]);
   const [abortControllers, setAbortControllers] = useState<Map<string, AbortController>>(new Map());
+
+  // Keyboard shortcuts help
+  const [showShortcutsHelp, setShowShortcutsHelp] = useState(false);
+
+  // Keyboard navigation in object list
+  const [focusedIndex, setFocusedIndex] = useState<number>(-1);
+
+  // Refs for triggering file uploads
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   // Fetch objects with caching
   const objectsCacheKey = createCacheKey('objects', bucketName, credentialId, currentPrefix);
@@ -1119,6 +1131,167 @@ function ObjectBrowser({ bucketName, credentialId }: ObjectBrowserProps) {
     return true;
   });
 
+  // Reset focused index when objects change
+  useEffect(() => {
+    setFocusedIndex(-1);
+  }, [filteredObjects.length, currentPrefix]);
+
+  // Get the item count including the "Navigate Up" button if shown
+  const totalItemCount = filteredObjects.length + (currentPrefix ? 1 : 0);
+
+  // Helper to get the object at focused index
+  const getFocusedObject = () => {
+    if (focusedIndex < 0) return null;
+    
+    // If "Navigate Up" is shown and focused index is 0, return null (it's the up button)
+    if (currentPrefix && focusedIndex === 0) return null;
+    
+    const objectIndex = currentPrefix ? focusedIndex - 1 : focusedIndex;
+    return filteredObjects[objectIndex] || null;
+  };
+
+  // Keyboard shortcuts for object browser actions
+  const objectBrowserShortcuts: KeyboardShortcut[] = [
+    {
+      key: 'u',
+      description: 'Upload files',
+      action: () => {
+        if (!uploadingFile) {
+          fileInputRef.current?.click();
+        }
+      },
+    },
+    {
+      key: 'n',
+      description: 'Create new folder',
+      action: () => {
+        if (!showCreateFolder) {
+          setShowCreateFolder(true);
+        }
+      },
+    },
+    {
+      key: 'r',
+      description: 'Refresh objects',
+      action: () => {
+        loadObjects();
+      },
+    },
+    {
+      key: '/',
+      description: 'Focus search',
+      action: () => {
+        searchInputRef.current?.focus();
+      },
+      ignoreInInput: false,
+    },
+    {
+      key: 'Escape',
+      description: 'Cancel/Close',
+      action: () => {
+        if (showCreateFolder) {
+          setShowCreateFolder(false);
+          setNewFolderName('');
+        } else if (isEditingMetadata) {
+          cancelEditingMetadata();
+        } else if (showShortcutsHelp) {
+          setShowShortcutsHelp(false);
+        }
+      },
+      ignoreInInput: false,
+    },
+    {
+      key: 'Backspace',
+      description: 'Navigate up to parent folder',
+      action: () => {
+        if (currentPrefix) {
+          navigateUp();
+        }
+      },
+    },
+    {
+      key: 'ArrowDown',
+      description: 'Navigate down in object list',
+      action: () => {
+        if (totalItemCount > 0) {
+          setFocusedIndex((prev) => Math.min(prev + 1, totalItemCount - 1));
+        }
+      },
+      ignoreInInput: false,
+    },
+    {
+      key: 'ArrowUp',
+      description: 'Navigate up in object list',
+      action: () => {
+        if (totalItemCount > 0) {
+          setFocusedIndex((prev) => (prev <= 0 ? 0 : prev - 1));
+        }
+      },
+      ignoreInInput: false,
+    },
+    {
+      key: 'Enter',
+      description: 'Open focused folder or view file metadata',
+      action: () => {
+        // If focused on "Navigate Up" button
+        if (currentPrefix && focusedIndex === 0) {
+          navigateUp();
+          return;
+        }
+
+        const focusedObject = getFocusedObject();
+        if (focusedObject) {
+          if (focusedObject.isFolder) {
+            navigateToFolder(focusedObject.key);
+          } else {
+            viewObjectMetadata(focusedObject);
+          }
+        }
+      },
+      ignoreInInput: false,
+    },
+    {
+      key: ' ',
+      description: 'Toggle selection of focused item',
+      action: () => {
+        const focusedObject = getFocusedObject();
+        if (focusedObject) {
+          toggleFileSelection(focusedObject.key);
+        }
+      },
+      ignoreInInput: false,
+    },
+    {
+      key: 'Home',
+      description: 'Jump to first item in list',
+      action: () => {
+        if (totalItemCount > 0) {
+          setFocusedIndex(0);
+        }
+      },
+      ignoreInInput: false,
+    },
+    {
+      key: 'End',
+      description: 'Jump to last item in list',
+      action: () => {
+        if (totalItemCount > 0) {
+          setFocusedIndex(totalItemCount - 1);
+        }
+      },
+      ignoreInInput: false,
+    },
+    {
+      key: '?',
+      shiftKey: true,
+      description: 'Show shortcuts help',
+      action: () => setShowShortcutsHelp(true),
+      ignoreInInput: false,
+    },
+  ];
+
+  useKeyboardShortcuts(objectBrowserShortcuts, true);
+
   const hasActiveFilters = 
     searchQuery !== '' || 
     fileTypeFilter !== 'all' || 
@@ -1148,6 +1321,12 @@ function ObjectBrowser({ bucketName, credentialId }: ObjectBrowserProps) {
         items={fileProgress}
         onClose={handleCloseProgressTracker}
         onCancel={handleCancelTransfer}
+      />
+      <KeyboardShortcutsHelp
+        isOpen={showShortcutsHelp}
+        onClose={() => setShowShortcutsHelp(false)}
+        shortcuts={objectBrowserShortcuts}
+        title="Object Browser Shortcuts"
       />
       <div className="space-y-6">
         {/* Header with breadcrumbs and actions */}
@@ -1225,6 +1404,7 @@ function ObjectBrowser({ bucketName, credentialId }: ObjectBrowserProps) {
             <label className="inline-flex cursor-pointer items-center rounded-md bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700">
               {uploadingFile ? 'Uploading...' : 'Upload Files'}
               <input
+                ref={fileInputRef}
                 type="file"
                 multiple
                 onChange={handleFileUpload}
@@ -1296,6 +1476,7 @@ function ObjectBrowser({ bucketName, credentialId }: ObjectBrowserProps) {
                 </svg>
               </div>
               <input
+                ref={searchInputRef}
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -1534,6 +1715,8 @@ function ObjectBrowser({ bucketName, credentialId }: ObjectBrowserProps) {
                 onNavigateUp={navigateUp}
                 onFolderHover={handleFolderHover}
                 onFileHover={handleFileHover}
+                focusedIndex={focusedIndex}
+                onFocusedIndexChange={setFocusedIndex}
               />
             )}
           </div>

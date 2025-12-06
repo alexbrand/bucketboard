@@ -24,6 +24,8 @@ interface VirtualizedObjectListProps {
   onNavigateUp?: () => void;
   onFolderHover?: (key: string) => void;
   onFileHover?: (object: StorageObject) => void;
+  focusedIndex?: number;
+  onFocusedIndexChange?: (index: number) => void;
 }
 
 interface RowData {
@@ -38,6 +40,7 @@ interface RowData {
   formatBytes: (bytes: number) => string;
   onFolderHover?: (key: string) => void;
   onFileHover?: (object: StorageObject) => void;
+  focusedIndex?: number;
 }
 
 const RowComponent = ({
@@ -60,15 +63,19 @@ const RowComponent = ({
     formatBytes,
     onFolderHover,
     onFileHover,
+    focusedIndex,
   } = data;
 
   // Handle "Navigate Up" button
   if (showNavigateUp && index === 0) {
+    const isFocused = focusedIndex === 0;
     return (
       <div style={style}>
         <button
           onClick={onNavigateUp}
-          className="flex w-full items-center border-b border-gray-200 px-6 py-3 text-left hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-gray-900"
+          className={`flex w-full items-center border-b border-gray-200 px-6 py-3 text-left hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-gray-900 ${
+            isFocused ? 'ring-2 ring-inset ring-blue-500' : ''
+          }`}
         >
           <svg
             className="h-5 w-5 text-gray-400"
@@ -99,12 +106,14 @@ const RowComponent = ({
     return <div style={style} />;
   }
 
+  const isFocused = focusedIndex === index;
+
   return (
     <div
       style={style}
       className={`flex items-center border-b border-gray-200 px-6 py-3 hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-gray-900 ${
         selectedObject?.key === object.key ? 'bg-blue-50 dark:bg-blue-900/20' : ''
-      }`}
+      } ${isFocused ? 'ring-2 ring-inset ring-blue-500' : ''}`}
       onMouseEnter={() => {
         if (object.isFolder && onFolderHover) {
           onFolderHover(object.key);
@@ -182,6 +191,8 @@ export function VirtualizedObjectList({
   onNavigateUp,
   onFolderHover,
   onFileHover,
+  focusedIndex = -1,
+  onFocusedIndexChange,
 }: VirtualizedObjectListProps) {
   const listRef = useListRef(null);
   const [listHeight, setListHeight] = useState(600);
@@ -192,6 +203,13 @@ export function VirtualizedObjectList({
       listRef.current.scrollToRow({ index: 0 });
     }
   }, [objects]);
+
+  // Scroll to keep focused item visible
+  useEffect(() => {
+    if (listRef.current && focusedIndex >= 0) {
+      listRef.current.scrollToRow({ index: focusedIndex, align: 'auto' });
+    }
+  }, [focusedIndex]);
 
   const itemCount = objects.length + (showNavigateUp ? 1 : 0);
   const rowHeight = 56; // Height of each row in pixels
@@ -212,6 +230,7 @@ export function VirtualizedObjectList({
     formatBytes,
     onFolderHover,
     onFileHover,
+    focusedIndex,
   };
 
   return (
