@@ -163,7 +163,7 @@ export function AppSidebar({
                   onClick={() => onBucketSelect(bucket.name)}
                   className={`group flex w-full items-center gap-3 rounded-md px-3 py-2 text-left text-sm transition-colors cursor-pointer ${
                     selectedBucket === bucket.name
-                      ? 'bg-primary text-primary-foreground'
+                      ? 'bg-accent text-accent-foreground'
                       : 'text-foreground hover:bg-accent hover:text-accent-foreground'
                   }`}
                 >
