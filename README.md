@@ -47,15 +47,26 @@ Support for all major cloud storage platforms:
 
 ## Architecture
 
-### Performance Optimizations
-- Virtual scrolling for handling large object lists
-- Worker threads for computationally intensive operations
-- Streaming uploads/downloads for large files
-- Connection pooling and request multiplexing
-- Intelligent caching layers
+### Design Principles
+- Simple, fast, and local-first
+- Single-command startup with `npm run dev`
+- Credentials stored securely server-side
+- No CORS configuration required on buckets
 
 ### Technology Stack
-*(To be determined based on implementation)*
+
+**Framework**
+- **Next.js** - Full-stack React framework with API routes
+- **TypeScript** - Type-safe development
+- **Tailwind CSS** - Utility-first styling
+
+**Cloud SDKs** (server-side)
+- **AWS SDK for JavaScript** - S3 and S3-compatible storage
+- **@azure/storage-blob** - Azure Blob Storage
+- **@google-cloud/storage** - Google Cloud Storage
+
+**Development**
+- **ESLint** + **Prettier** - Code quality and formatting
 
 ## Getting Started
 
