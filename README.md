@@ -47,46 +47,25 @@ Support for all major cloud storage platforms:
 
 ## Architecture
 
-### Performance Optimizations
-- Virtual scrolling for handling large object lists
-- Worker threads for computationally intensive operations
-- Streaming uploads/downloads for large files
-- Connection pooling and request multiplexing
-- Intelligent caching layers
+### Design Principles
+- Simple, fast, and local-first
+- Direct connection to cloud storage APIs
+- Minimal dependencies
+- Easy to run and configure
 
 ### Technology Stack
 
-**Frontend**
-- **React** - UI framework for building the interactive interface
-- **TypeScript** - Type-safe development for enhanced reliability
-- **Vite** - Next-generation frontend build tool for fast development
-- **TanStack Query** - Powerful data synchronization and caching
-- **React Virtual** - Efficient virtual scrolling for large object lists
-- **Tailwind CSS** - Utility-first CSS framework for rapid UI development
-- **Zustand** - Lightweight state management
+**Core**
+- **React** + **TypeScript** + **Vite** - Modern frontend development
+- **Tailwind CSS** - Utility-first styling
+- **AWS SDK for JavaScript** - S3 and S3-compatible storage access
 
-**Backend**
-- **Node.js** - JavaScript runtime for server-side operations
-- **TypeScript** - Type-safe backend development
-- **Express** or **Fastify** - High-performance web framework
-- **AWS SDK** - Amazon S3 integration
-- **Azure Storage SDK** - Azure Blob Storage integration
-- **Google Cloud Storage SDK** - GCP storage integration
-- **MinIO SDK** - S3-compatible storage support
+**Development**
+- **ESLint** + **Prettier** - Code quality and formatting
 
-**Performance & Infrastructure**
-- **Web Workers** - Background processing for intensive operations
-- **Streaming APIs** - Efficient handling of large file transfers
-- **Redis** - In-memory caching for improved performance
-- **PostgreSQL** - Credential and configuration management
-- **Docker** - Containerization for consistent deployments
-
-**Development & Testing**
-- **Vitest** - Fast unit testing framework
-- **Playwright** - End-to-end testing
-- **ESLint** - Code quality and consistency
-- **Prettier** - Code formatting
-- **Turborepo** or **Nx** - Monorepo management (if needed)
+**Future Considerations**
+- Additional cloud SDKs as needed (Azure, GCP)
+- Simple backend proxy if CORS becomes an issue
 
 ## Getting Started
 
