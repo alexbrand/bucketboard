@@ -64,7 +64,7 @@
 ### Performance & Polish
 
 - [x] Implement intelligent caching and prefetching
-- [ ] Add pagination for large bucket listings
+- [x] Add pagination for large bucket listings
 - [ ] Optimize bundle size and lazy loading
 - [ ] Add keyboard shortcuts for navigation
 - [ ] Implement dark mode support
