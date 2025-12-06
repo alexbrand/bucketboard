@@ -3,7 +3,7 @@
 import { useState, useEffect, Fragment } from 'react';
 import dynamic from 'next/dynamic';
 import { StorageProvider } from '@/lib/types/credentials';
-import { useCachedFetch, DEFAULT_TTL } from '@/lib/utils/use-cached-fetch';
+import { useCachedFetch } from '@/lib/utils/use-cached-fetch';
 import { cacheManager } from '@/lib/utils/cache';
 
 // Lazy load CredentialForm component
@@ -42,8 +42,8 @@ export default function CredentialsPage() {
       return response.json();
     },
     {
-      ttl: DEFAULT_TTL.CREDENTIALS,
-      useLocalStorage: true,
+      ttl: 0,
+      useLocalStorage: false,
     }
   );
 
