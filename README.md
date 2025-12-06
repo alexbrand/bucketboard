@@ -128,6 +128,20 @@ See [DOCKER_SETUP.md](./DOCKER_SETUP.md) for complete setup instructions and [sc
 
 Contributions are welcome! Please feel free to submit issues and pull requests.
 
+### Security Checks
+
+This project uses [pre-commit](https://pre-commit.com) to run security checks (like gitleaks) before each commit.
+
+To set it up locally:
+
+1. Install pre-commit: `brew install pre-commit` (or via pip: `pip install pre-commit`)
+2. Install the git hooks:
+   ```bash
+   pre-commit install
+   ```
+
+Now checks will run automatically on every commit.
+
 ## License
 
 _(License information to be added)_
