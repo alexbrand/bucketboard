@@ -49,23 +49,24 @@ Support for all major cloud storage platforms:
 
 ### Design Principles
 - Simple, fast, and local-first
-- Direct connection to cloud storage APIs
-- Minimal dependencies
-- Easy to run and configure
+- Single-command startup with `npm run dev`
+- Credentials stored securely server-side
+- No CORS configuration required on buckets
 
 ### Technology Stack
 
-**Core**
-- **React** + **TypeScript** + **Vite** - Modern frontend development
+**Framework**
+- **Next.js** - Full-stack React framework with API routes
+- **TypeScript** - Type-safe development
 - **Tailwind CSS** - Utility-first styling
-- **AWS SDK for JavaScript** - S3 and S3-compatible storage access
+
+**Cloud SDKs** (server-side)
+- **AWS SDK for JavaScript** - S3 and S3-compatible storage
+- **@azure/storage-blob** - Azure Blob Storage
+- **@google-cloud/storage** - Google Cloud Storage
 
 **Development**
 - **ESLint** + **Prettier** - Code quality and formatting
-
-**Future Considerations**
-- Additional cloud SDKs as needed (Azure, GCP)
-- Simple backend proxy if CORS becomes an issue
 
 ## Getting Started
 
