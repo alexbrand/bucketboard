@@ -67,5 +67,5 @@
 - [x] Add pagination for large bucket listings
 - [x] Optimize bundle size and lazy loading
 - [x] Add keyboard shortcuts for navigation
-- [ ] Add file preview capabilities (images, text files)
+- [x] Add file preview capabilities (images, text files)
 

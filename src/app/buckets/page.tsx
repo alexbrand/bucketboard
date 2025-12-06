@@ -21,6 +21,11 @@ const VirtualizedObjectList = dynamic(
   { ssr: false }
 );
 
+const FilePreview = dynamic(
+  () => import('@/components/FilePreview').then((mod) => mod.FilePreview),
+  { ssr: false }
+);
+
 interface Credential {
   id: string;
   name: string;
@@ -437,6 +442,9 @@ function ObjectBrowser({ bucketName, credentialId }: ObjectBrowserProps) {
 
   // Keyboard navigation in object list
   const [focusedIndex, setFocusedIndex] = useState<number>(-1);
+
+  // File preview state
+  const [previewFile, setPreviewFile] = useState<StorageObject | null>(null);
 
   // Refs for triggering file uploads
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -1094,6 +1102,19 @@ function ObjectBrowser({ bucketName, credentialId }: ObjectBrowserProps) {
     return 'other';
   };
 
+  const isFilePreviewable = (key: string): boolean => {
+    const ext = getFileExtension(key);
+    const previewableExts = [
+      // Images
+      'jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp', 'ico',
+      // Text files
+      'txt', 'json', 'xml', 'html', 'htm', 'css', 'js', 'ts', 'tsx', 'jsx',
+      'md', 'yaml', 'yml', 'csv', 'log', 'py', 'java', 'cpp', 'c', 'h',
+      'cs', 'go', 'rs', 'rb', 'php', 'sh', 'bash',
+    ];
+    return previewableExts.includes(ext);
+  };
+
   const filteredObjects = objects.filter((object) => {
     // Skip filtering for folders if in current directory view
     if (object.isFolder && !searchQuery) return true;
@@ -1287,6 +1308,15 @@ function ObjectBrowser({ bucketName, credentialId }: ObjectBrowserProps) {
       description: 'Show shortcuts help',
       action: () => setShowShortcutsHelp(true),
       ignoreInInput: false,
+    },
+    {
+      key: 'p',
+      description: 'Preview selected file',
+      action: () => {
+        if (selectedObject && !selectedObject.isFolder && isFilePreviewable(selectedObject.key)) {
+          setPreviewFile(selectedObject);
+        }
+      },
     },
   ];
 
@@ -1993,13 +2023,53 @@ function ObjectBrowser({ bucketName, credentialId }: ObjectBrowserProps) {
                       </>
                     )}
                     
-                    {/* Download button - show in view mode only */}
+                    {/* Preview and Download buttons - show in view mode only */}
                     {!isEditingMetadata && (
-                      <div>
+                      <div className="space-y-2">
+                        {isFilePreviewable(selectedObject.key) && (
+                          <button
+                            onClick={() => setPreviewFile(selectedObject)}
+                            className="inline-flex w-full items-center justify-center rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700"
+                          >
+                            <svg
+                              className="mr-1.5 h-4 w-4"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                              />
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                              />
+                            </svg>
+                            Preview
+                          </button>
+                        )}
                         <a
                           href={`/api/buckets/${bucketName}/download?credentialId=${credentialId}&key=${encodeURIComponent(selectedObject.key)}`}
                           className="inline-flex w-full items-center justify-center rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
                         >
+                          <svg
+                            className="mr-1.5 h-4 w-4"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                            />
+                          </svg>
                           Download
                         </a>
                       </div>
@@ -2016,6 +2086,18 @@ function ObjectBrowser({ bucketName, credentialId }: ObjectBrowserProps) {
         </div>
       </div>
       </div>
+      
+      {/* File Preview Modal */}
+      {previewFile && (
+        <FilePreview
+          bucketName={bucketName}
+          objectKey={previewFile.key}
+          credentialId={credentialId}
+          fileName={previewFile.key.split('/').filter(Boolean).pop() || 'file'}
+          isOpen={!!previewFile}
+          onClose={() => setPreviewFile(null)}
+        />
+      )}
     </>
   );
 }
