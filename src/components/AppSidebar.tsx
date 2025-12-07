@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Package, Moon, Sun } from 'lucide-react';
+import { Package, Moon, Sun, Settings } from 'lucide-react';
 import { useTheme } from 'next-themes';
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import {
   Select,
@@ -176,8 +177,21 @@ export function AppSidebar({
         </div>
       </div>
 
-      {/* Theme toggle */}
-      <div id="sidebar-theme-toggle" className="flex-shrink-0 p-4">
+      {/* Bottom actions */}
+      <div className="flex-shrink-0 p-4 flex items-center gap-2">
+        {/* Connections link */}
+        <Link href="/connections">
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label="Manage connections"
+            className="h-9 w-9"
+          >
+            <Settings className="h-4 w-4" />
+          </Button>
+        </Link>
+
+        {/* Theme toggle */}
         <Button
           variant="ghost"
           size="icon"
