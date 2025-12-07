@@ -81,11 +81,12 @@ export default function BucketsPage() {
   useEffect(() => {
     const connectionId = searchParams.get('connectionId');
     if (connectionId && connectionId !== selectedCredentialId) {
-      setSelectedCredentialId(connectionId);
-      // Reset bucket selection when connection changes
+      // Reset bucket selection FIRST to prevent race conditions
       setSelectedBucket('');
       setCurrentPrefix('');
       setSelectedObject(null);
+      // Then update connection ID
+      setSelectedCredentialId(connectionId);
     }
   }, [searchParams, selectedCredentialId]);
 
@@ -118,6 +119,21 @@ export default function BucketsPage() {
   // Refs for triggering file uploads
   const fileInputRef = useRef<HTMLInputElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  
+  // Track previous connection ID to invalidate cache when it changes
+  const prevConnectionIdRef = useRef<string>('');
+
+  // Invalidate cache when connection changes
+  useEffect(() => {
+    if (prevConnectionIdRef.current && prevConnectionIdRef.current !== selectedCredentialId) {
+      // Invalidate all cache entries for the previous connection
+      const oldConnectionId = prevConnectionIdRef.current;
+      const escapedOldConnectionId = oldConnectionId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      // Invalidate objects, metadata, and analytics cache for the old connection
+      cacheManager.invalidatePattern(new RegExp(`^(objects|metadata|analytics):.*:${escapedOldConnectionId}(:.*)?$`));
+    }
+    prevConnectionIdRef.current = selectedCredentialId;
+  }, [selectedCredentialId]);
 
   // Fetch objects with caching
   const objectsCacheKey = createCacheKey(
@@ -126,6 +142,18 @@ export default function BucketsPage() {
     selectedCredentialId,
     currentPrefix
   );
+  
+  // Use refs to ensure fetcher always uses latest values
+  const selectedBucketRef = useRef(selectedBucket);
+  const selectedCredentialIdRef = useRef(selectedCredentialId);
+  const currentPrefixRef = useRef(currentPrefix);
+  
+  useEffect(() => {
+    selectedBucketRef.current = selectedBucket;
+    selectedCredentialIdRef.current = selectedCredentialId;
+    currentPrefixRef.current = currentPrefix;
+  }, [selectedBucket, selectedCredentialId, currentPrefix]);
+  
   const {
     data: objectsData,
     loading,
@@ -134,13 +162,25 @@ export default function BucketsPage() {
   } = useCachedFetch<ObjectsResponse>(
     objectsCacheKey,
     async () => {
+      // Use refs to get the latest values (avoid stale closure)
+      const bucket = selectedBucketRef.current;
+      const connectionId = selectedCredentialIdRef.current;
+      const prefix = currentPrefixRef.current;
+      
+      // Defensive check: don't fetch if bucket or credential is missing
+      if (!bucket || !connectionId) {
+        throw new Error('Bucket or connection not selected');
+      }
       const params = new URLSearchParams({
-        connectionId: selectedCredentialId,
-        prefix: currentPrefix,
+        connectionId,
+        prefix,
         delimiter: '/',
       });
-      const response = await fetch(`/api/buckets/${selectedBucket}/objects?${params}`);
-      if (!response.ok) throw new Error('Failed to fetch objects');
+      const response = await fetch(`/api/buckets/${bucket}/objects?${params}`);
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `Failed to fetch objects: ${response.statusText}`);
+      }
       return response.json();
     },
     {
@@ -153,6 +193,7 @@ export default function BucketsPage() {
 
   // Prefetch function for folder contents
   const handleFolderHover = (folderKey: string) => {
+    if (!selectedBucket || !selectedCredentialId) return;
     const cacheKey = createCacheKey('objects', selectedBucket, selectedCredentialId, folderKey);
     if (!cacheManager.get(cacheKey)) {
       cacheManager.prefetch<ObjectsResponse>(
@@ -174,7 +215,7 @@ export default function BucketsPage() {
 
   // Prefetch function for metadata
   const handleFileHover = (object: StorageObject) => {
-    if (!object.isFolder) {
+    if (!object.isFolder && selectedBucket && selectedCredentialId) {
       const cacheKey = createCacheKey('metadata', selectedBucket, selectedCredentialId, object.key);
       if (!cacheManager.get(cacheKey)) {
         cacheManager.prefetch(

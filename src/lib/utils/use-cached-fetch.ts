@@ -76,7 +76,9 @@ export function useCachedFetch<T>(
         abortControllerRef.current.abort();
       }
 
-      abortControllerRef.current = new AbortController();
+      // Create new abort controller for this request
+      const currentAbortController = new AbortController();
+      abortControllerRef.current = currentAbortController;
       setLoading(true);
       setError(null);
 
@@ -84,8 +86,8 @@ export function useCachedFetch<T>(
         // Use ref to get latest fetcher without adding it to dependencies
         const result = await fetcherRef.current();
 
-        // Check if request was aborted
-        if (abortControllerRef.current?.signal.aborted) {
+        // Check if request was aborted (could be aborted due to cache key change or disabled)
+        if (currentAbortController.signal.aborted || abortControllerRef.current !== currentAbortController) {
           return;
         }
 
@@ -93,7 +95,8 @@ export function useCachedFetch<T>(
         setData(result);
         setLastUpdated(Date.now());
       } catch (err) {
-        if (abortControllerRef.current?.signal.aborted) {
+        // Don't set error if request was aborted or if abort controller changed
+        if (currentAbortController.signal.aborted || abortControllerRef.current !== currentAbortController) {
           return;
         }
 
@@ -101,7 +104,8 @@ export function useCachedFetch<T>(
         setError(error);
         console.error(`Error fetching ${cacheKey}:`, error);
       } finally {
-        if (!abortControllerRef.current?.signal.aborted) {
+        // Only update loading state if this is still the current request
+        if (!currentAbortController.signal.aborted && abortControllerRef.current === currentAbortController) {
           setLoading(false);
         }
       }
@@ -116,7 +120,15 @@ export function useCachedFetch<T>(
 
   // Fetch data when cacheKey changes or component mounts
   useEffect(() => {
-    if (!enabled) return;
+    if (!enabled) {
+      // Abort any in-flight requests when disabled
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+        abortControllerRef.current = null;
+      }
+      setLoading(false);
+      return;
+    }
 
     // Check cache and set initial state
     const cached = cacheManager.get<T>(cacheKey, cacheOptions);
