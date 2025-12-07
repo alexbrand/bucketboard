@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import { AppSidebar } from '@/components/AppSidebar';
 import { FileDetailsPanel } from '@/components/FileDetailsPanel';
+import { ObjectListSkeleton } from '@/components/ObjectListSkeleton';
 import type { FileProgress } from '@/components/ProgressTracker';
 import { useCachedFetch, createCacheKey, DEFAULT_TTL } from '@/lib/utils/use-cached-fetch';
 import { cacheManager } from '@/lib/utils/cache';
@@ -1161,9 +1162,7 @@ export default function BucketsPage() {
             {/* Object List */}
             <div id="object-list-container" className="flex-1 overflow-hidden p-4">
               {loading ? (
-                <div className="flex h-full items-center justify-center">
-                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                </div>
+                <ObjectListSkeleton showNavigateUp={!!currentPrefix} />
               ) : objects.length === 0 ? (
                 <div className="flex h-full items-center justify-center">
                   <div className="text-center">
