@@ -118,12 +118,31 @@ export default function BucketsPage() {
   // File preview state
   const [previewFile, setPreviewFile] = useState<StorageObject | null>(null);
 
+  // Read-only mode state
+  const [readOnly, setReadOnly] = useState<boolean>(false);
+
   // Refs for triggering file uploads
   const fileInputRef = useRef<HTMLInputElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   
   // Track previous connection ID to invalidate cache when it changes
   const prevConnectionIdRef = useRef<string>('');
+
+  // Fetch read-only mode setting
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const response = await fetch('/api/settings');
+        if (response.ok) {
+          const data = await response.json();
+          setReadOnly(data.readOnly || false);
+        }
+      } catch (error) {
+        console.error('Error fetching settings:', error);
+      }
+    };
+    fetchSettings();
+  }, []);
 
   // Invalidate cache when connection changes
   useEffect(() => {
@@ -253,6 +272,10 @@ export default function BucketsPage() {
 
   const createFolder = async () => {
     if (!newFolderName.trim()) return;
+    if (readOnly) {
+      alert('Write operations are disabled in read-only mode');
+      return;
+    }
 
     try {
       const folderKey = currentPrefix + newFolderName.trim() + '/';
@@ -288,6 +311,11 @@ export default function BucketsPage() {
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (!files || files.length === 0) return;
+    if (readOnly) {
+      alert('Write operations are disabled in read-only mode');
+      event.target.value = '';
+      return;
+    }
 
     setUploadingFile(true);
     const filesToUpload = Array.from(files);
@@ -444,6 +472,10 @@ export default function BucketsPage() {
 
   const handleDeleteSelected = async () => {
     if (selectedFiles.size === 0) return;
+    if (readOnly) {
+      alert('Write operations are disabled in read-only mode');
+      return;
+    }
     if (!confirm(`Are you sure you want to delete ${selectedFiles.size} item(s)?`)) return;
 
     try {
@@ -744,7 +776,7 @@ export default function BucketsPage() {
       key: 'u',
       description: 'Upload files',
       action: () => {
-        if (!uploadingFile) {
+        if (!uploadingFile && !readOnly) {
           fileInputRef.current?.click();
         }
       },
@@ -753,7 +785,7 @@ export default function BucketsPage() {
       key: 'n',
       description: 'Create new folder',
       action: () => {
-        if (!showCreateFolder) {
+        if (!showCreateFolder && !readOnly) {
           setShowCreateFolder(true);
         }
       },
@@ -928,7 +960,7 @@ export default function BucketsPage() {
             {/* Toolbar */}
             <div id="bucket-toolbar" className="bg-background px-4 pt-4">
               {/* Folder creation form */}
-              {showCreateFolder && (
+              {showCreateFolder && !readOnly && (
                 <Card className="mb-4">
                   <CardContent className="p-4">
                     <Label htmlFor="folder-name">Folder Name</Label>
@@ -1119,10 +1151,12 @@ export default function BucketsPage() {
                         <Download className="mr-1.5 h-4 w-4" />
                         Download ({selectedFiles.size})
                       </Button>
-                      <Button onClick={handleDeleteSelected} variant="destructive" size="sm">
-                        <X className="mr-1.5 h-4 w-4" />
-                        Delete ({selectedFiles.size})
-                      </Button>
+                      {!readOnly && (
+                        <Button onClick={handleDeleteSelected} variant="destructive" size="sm">
+                          <X className="mr-1.5 h-4 w-4" />
+                          Delete ({selectedFiles.size})
+                        </Button>
+                      )}
                     </>
                   )}
                   <LastUpdated timestamp={lastUpdated} />
@@ -1135,23 +1169,27 @@ export default function BucketsPage() {
                   >
                     <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
                   </Button>
-                  <Button
-                    onClick={() => setShowCreateFolder(true)}
-                    variant="outline"
-                    size="icon"
-                    title="New Folder"
-                  >
-                    <FolderPlus className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    onClick={() => fileInputRef.current?.click()}
-                    disabled={uploadingFile}
-                    variant="outline"
-                    size="icon"
-                    title={uploadingFile ? 'Uploading...' : 'Upload'}
-                  >
-                    <Upload className="h-4 w-4" />
-                  </Button>
+                  {!readOnly && (
+                    <Button
+                      onClick={() => setShowCreateFolder(true)}
+                      variant="outline"
+                      size="icon"
+                      title="New Folder"
+                    >
+                      <FolderPlus className="h-4 w-4" />
+                    </Button>
+                  )}
+                  {!readOnly && (
+                    <Button
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={uploadingFile}
+                      variant="outline"
+                      size="icon"
+                      title={uploadingFile ? 'Uploading...' : 'Upload'}
+                    >
+                      <Upload className="h-4 w-4" />
+                    </Button>
+                  )}
                   <input
                     ref={fileInputRef}
                     type="file"
@@ -1227,6 +1265,7 @@ export default function BucketsPage() {
           selectedObject={selectedObject}
           onClose={() => setSelectedObject(null)}
           onPreview={(obj) => setPreviewFile(obj)}
+          readOnly={readOnly}
         />
       )}
 

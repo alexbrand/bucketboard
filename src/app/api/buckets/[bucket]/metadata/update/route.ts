@@ -7,6 +7,14 @@ type RouteContext = {
 };
 
 export async function PUT(request: NextRequest, context: RouteContext) {
+  // Check if read-only mode is enabled
+  if (process.env.READ_ONLY === 'true') {
+    return NextResponse.json(
+      { error: 'Write operations are disabled in read-only mode' },
+      { status: 403 }
+    );
+  }
+
   try {
     const { bucket } = await context.params;
     const body = await request.json();

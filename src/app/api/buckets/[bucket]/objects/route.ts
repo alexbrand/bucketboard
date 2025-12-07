@@ -52,6 +52,14 @@ export async function GET(request: NextRequest, context: RouteContext) {
 }
 
 export async function POST(request: NextRequest, context: RouteContext) {
+  // Check if read-only mode is enabled
+  if (process.env.READ_ONLY === 'true') {
+    return NextResponse.json(
+      { error: 'Write operations are disabled in read-only mode' },
+      { status: 403 }
+    );
+  }
+
   const { bucket } = await context.params;
   const searchParams = request.nextUrl.searchParams;
   const connectionId = searchParams.get('connectionId');
@@ -102,6 +110,14 @@ export async function POST(request: NextRequest, context: RouteContext) {
 }
 
 export async function DELETE(request: NextRequest, context: RouteContext) {
+  // Check if read-only mode is enabled
+  if (process.env.READ_ONLY === 'true') {
+    return NextResponse.json(
+      { error: 'Write operations are disabled in read-only mode' },
+      { status: 403 }
+    );
+  }
+
   const { bucket } = await context.params;
   const body = await request.json();
   const { keys, connectionId } = body;

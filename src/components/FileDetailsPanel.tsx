@@ -37,6 +37,7 @@ interface FileDetailsPanelProps {
   selectedObject: StorageObject | null;
   onClose: () => void;
   onPreview?: (object: StorageObject) => void;
+  readOnly?: boolean;
 }
 
 export function FileDetailsPanel({
@@ -45,6 +46,7 @@ export function FileDetailsPanel({
   selectedObject,
   onClose,
   onPreview,
+  readOnly = false,
 }: FileDetailsPanelProps) {
   const [objectMetadata, setObjectMetadata] = useState<ObjectMetadata | null>(null);
   const [isEditingMetadata, setIsEditingMetadata] = useState(false);
@@ -96,6 +98,10 @@ export function FileDetailsPanel({
 
   const startEditingMetadata = () => {
     if (!objectMetadata) return;
+    if (readOnly) {
+      alert('Write operations are disabled in read-only mode');
+      return;
+    }
     setEditedMetadata(objectMetadata.metadata || {});
     setEditedTags(objectMetadata.tags || {});
     setEditedStorageClass(objectMetadata.storageClass || '');
@@ -496,9 +502,11 @@ export function FileDetailsPanel({
             </div>
           ) : (
             <div className="space-y-2">
-              <Button variant="outline" onClick={startEditingMetadata} className="w-full">
-                Edit Metadata
-              </Button>
+              {!readOnly && (
+                <Button variant="outline" onClick={startEditingMetadata} className="w-full">
+                  Edit Metadata
+                </Button>
+              )}
               {isFilePreviewable(selectedObject.key) && onPreview && (
                 <Button
                   onClick={() => onPreview(selectedObject)}

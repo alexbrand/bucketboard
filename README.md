@@ -101,6 +101,24 @@ Support for all major cloud storage platforms:
 
 3. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
+### Configuration
+
+#### Read-Only Mode
+
+You can enable read-only mode by setting the `READ_ONLY` environment variable to `true`. When enabled, all write operations (upload, delete, create folder, edit metadata) will be disabled both in the UI and at the API level.
+
+```bash
+READ_ONLY=true pnpm dev
+```
+
+In read-only mode:
+- Upload buttons and functionality are hidden/disabled
+- Delete buttons are hidden
+- Create folder functionality is disabled
+- Edit metadata functionality is disabled
+- Write API endpoints return 403 errors
+- Keyboard shortcuts for write operations are disabled
+
 ### Local Testing with Docker Compose
 
 For local testing without connecting to real cloud services, you can use the included Docker Compose setup with emulators for all three providers:
