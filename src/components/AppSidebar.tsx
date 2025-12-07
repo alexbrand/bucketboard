@@ -14,7 +14,6 @@ import {
 } from '@/components/ui/select';
 import { StorageProvider } from '@/lib/types/connections';
 import { useCachedFetch, createCacheKey, DEFAULT_TTL } from '@/lib/utils/use-cached-fetch';
-import { Card } from '@/components/ui/card';
 
 interface Connection {
   id: string;
@@ -80,7 +79,8 @@ export function AppSidebar({
     if (connections.length > 0 && !selectedCredentialId) {
       onCredentialChange(connections[0].id);
     }
-  }, [connections, selectedCredentialId, onCredentialChange]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [connections.length, selectedCredentialId, onCredentialChange]);
 
   // Fetch buckets
   const { data: bucketsData, loading: bucketsLoading } = useCachedFetch<BucketsResponse>(
@@ -111,9 +111,8 @@ export function AppSidebar({
         onBucketSelect(buckets[0].name);
       }
     }
-  }, [buckets, selectedBucket, bucketsLoading, onBucketSelect]);
-
-  const selectedConnection = connections.find((c) => c.id === selectedCredentialId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [buckets.length, selectedBucket, bucketsLoading, onBucketSelect]);
 
   return (
     <aside

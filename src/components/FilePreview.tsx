@@ -204,9 +204,10 @@ export function FilePreview({
 
           {!loading && !error && fileType === 'image' && imageUrl && (
             <div className="flex h-full items-center justify-center min-h-[400px]">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={imageUrl}
-                alt={fileName}
+                alt={fileName || 'Image preview'}
                 className="max-h-full max-w-full rounded-lg object-contain"
                 onError={() => setError('Failed to load image')}
               />

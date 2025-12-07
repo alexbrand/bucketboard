@@ -38,5 +38,3 @@ export interface GCPStorageConnection extends ConnectionBase {
 }
 
 export type Connection = AWSS3Connection | AzureBlobConnection | GCPStorageConnection;
-
-export type { StorageProvider };

@@ -50,7 +50,7 @@ export function ConnectionForm({ onSuccess, onCancel }: ConnectionFormProps) {
     setTestResult(null);
 
     try {
-      let config: any = {};
+      let config: Record<string, unknown> = {};
 
       if (provider === 'aws-s3') {
         config = {
@@ -104,7 +104,7 @@ export function ConnectionForm({ onSuccess, onCancel }: ConnectionFormProps) {
 
     try {
       const id = `${provider}-${Date.now()}`;
-      let config: any = {};
+      let config: Record<string, unknown> = {};
 
       if (provider === 'aws-s3') {
         config = {

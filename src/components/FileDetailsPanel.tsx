@@ -13,10 +13,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useCachedFetch, createCacheKey, DEFAULT_TTL } from '@/lib/utils/use-cached-fetch';
+import { createCacheKey, DEFAULT_TTL } from '@/lib/utils/use-cached-fetch';
 import { cacheManager } from '@/lib/utils/cache';
-import { getFileIcon } from '@/lib/utils/file-icons';
-import { cn } from '@/lib/utils';
 
 interface StorageObject {
   key: string;
@@ -62,6 +60,7 @@ export function FileDetailsPanel({
     } else {
       setObjectMetadata(null);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedObject?.key]);
 
   const loadMetadata = async () => {

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { StorageProvider } from '@/lib/types/connections';
 import { useCachedFetch, createCacheKey, DEFAULT_TTL } from '@/lib/utils/use-cached-fetch';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Select,
   SelectContent,
@@ -12,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Loader2, Package, Database, FileText, Image, Box } from 'lucide-react';
+import { Loader2, Package, Database, FileText, Image } from 'lucide-react';
 
 interface Connection {
   id: string;
@@ -69,7 +69,8 @@ export default function AnalyticsPage() {
     if (connections.length > 0 && !selectedCredentialId) {
       setSelectedCredentialId(connections[0].id);
     }
-  }, [connections, selectedCredentialId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [connections.length, selectedCredentialId]);
 
   // Fetch analytics with caching
   const { data: analytics, loading } = useCachedFetch<AnalyticsData>(
@@ -219,7 +220,8 @@ export default function AnalyticsPage() {
               <Card>
                 <CardContent className="p-6">
                   <div className="flex items-center">
-                    <Image className="h-8 w-8 text-purple-600" />
+                    {/* eslint-disable-next-line jsx-a11y/alt-text */}
+                    <Image className="h-8 w-8 text-purple-600" aria-hidden="true" />
                     <div className="ml-5">
                       <p className="text-sm font-medium text-muted-foreground">File Types</p>
                       <p className="text-2xl font-semibold">

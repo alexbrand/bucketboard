@@ -50,7 +50,7 @@ export function substituteEnvVarsInObject<T>(obj: T): T {
   }
 
   if (obj !== null && typeof obj === 'object') {
-    const result: any = {};
+    const result: Record<string, unknown> = {};
     for (const [key, value] of Object.entries(obj)) {
       result[key] = substituteEnvVarsInObject(value);
     }

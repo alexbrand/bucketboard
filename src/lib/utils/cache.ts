@@ -24,7 +24,7 @@ export const DEFAULT_TTL = {
 };
 
 class CacheManager {
-  private memoryCache: Map<string, CacheEntry<any>> = new Map();
+  private memoryCache: Map<string, CacheEntry<unknown>> = new Map();
   private prefetchQueue: Set<string> = new Set();
   private maxCacheSize = 100; // Maximum number of entries in memory cache
 
@@ -84,7 +84,7 @@ class CacheManager {
       try {
         const stored = localStorage.getItem(storageKey);
         if (stored) {
-          const entry: CacheEntry<any> = JSON.parse(stored);
+          const entry: CacheEntry<unknown> = JSON.parse(stored);
           if (this.isValid(entry)) {
             return entry.timestamp;
           }
@@ -243,7 +243,7 @@ class CacheManager {
           try {
             const stored = localStorage.getItem(key);
             if (stored) {
-              const entry: CacheEntry<any> = JSON.parse(stored);
+              const entry: CacheEntry<unknown> = JSON.parse(stored);
               if (!this.isValid(entry)) {
                 keysToRemove.push(key);
               }

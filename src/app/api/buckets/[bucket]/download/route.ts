@@ -34,9 +34,6 @@ export async function GET(request: NextRequest, context: RouteContext) {
     // Get object
     const data = await provider.getObject(bucket, key);
 
-    // Get metadata to determine content type
-    const metadata = await provider.getObjectMetadata(bucket, key);
-
     // Extract filename from key
     const filename = key.split('/').pop() || 'download';
 

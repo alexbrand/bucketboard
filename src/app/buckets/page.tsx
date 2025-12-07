@@ -12,7 +12,7 @@ import { LastUpdated } from '@/components/LastUpdated';
 import { useKeyboardShortcuts, KeyboardShortcut } from '@/lib/utils/use-keyboard-shortcuts';
 import { useShortcuts } from '@/components/ShortcutsContext';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -311,7 +311,7 @@ export default function BucketsPage() {
               try {
                 const response = JSON.parse(xhr.responseText);
                 errorMessage = response.error || errorMessage;
-              } catch (e) {
+              } catch {
                 // Ignore
               }
               setFileProgress((prev) =>
@@ -1161,7 +1161,6 @@ export default function BucketsPage() {
                     onFolderHover={handleFolderHover}
                     onFileHover={handleFileHover}
                     focusedIndex={focusedIndex}
-                    onFocusedIndexChange={setFocusedIndex}
                   />
                 </Card>
               )}

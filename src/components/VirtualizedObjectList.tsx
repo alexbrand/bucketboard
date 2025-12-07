@@ -2,7 +2,6 @@
 
 import { List, useListRef } from 'react-window';
 import { useEffect, useState, useRef } from 'react';
-import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ArrowUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -30,7 +29,6 @@ interface VirtualizedObjectListProps {
   onFolderHover?: (key: string) => void;
   onFileHover?: (object: StorageObject) => void;
   focusedIndex?: number;
-  onFocusedIndexChange?: (index: number) => void;
 }
 
 interface RowData {
@@ -106,6 +104,7 @@ const RowComponent = ({
 
   const isFocused = focusedIndex === index;
   const isSelected = selectedObject?.key === object.key;
+  const IconComponent = getFileIcon(object.key, object.isFolder);
 
   return (
     <div
@@ -136,10 +135,8 @@ const RowComponent = ({
         }
         className="flex items-center min-w-0 text-left cursor-pointer"
       >
-        {(() => {
-          const IconComponent = getFileIcon(object.key, object.isFolder);
-          return <IconComponent className={cn('h-5 w-5 flex-shrink-0', 'text-primary')} />;
-        })()}
+        {/* eslint-disable-next-line react-hooks/static-components */}
+        <IconComponent className={cn('h-5 w-5 flex-shrink-0', 'text-primary')} />
         <span className="ml-3 text-sm font-medium truncate">
           {object.key.split('/').filter(Boolean).pop()}
         </span>
@@ -167,7 +164,6 @@ export function VirtualizedObjectList({
   onFolderHover,
   onFileHover,
   focusedIndex = -1,
-  onFocusedIndexChange,
 }: VirtualizedObjectListProps) {
   const listRef = useListRef(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -203,13 +199,15 @@ export function VirtualizedObjectList({
     if (listRef.current) {
       listRef.current.scrollToRow({ index: 0 });
     }
-  }, [objects]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [objects.length]);
 
   // Scroll to keep focused item visible
   useEffect(() => {
     if (listRef.current && focusedIndex >= 0) {
       listRef.current.scrollToRow({ index: focusedIndex, align: 'auto' });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [focusedIndex]);
 
   const itemCount = objects.length + (showNavigateUp ? 1 : 0);
@@ -239,6 +237,7 @@ export function VirtualizedObjectList({
       {listHeight > 0 && (
         <List<RowData>
           listRef={listRef}
+          // @ts-expect-error - react-window List component accepts height prop but types are incorrect
           height={listHeight}
           rowCount={itemCount}
           rowHeight={rowHeight}

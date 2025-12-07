@@ -8,6 +8,7 @@ import {
   DeleteObjectsCommand,
   HeadObjectCommand,
   CopyObjectCommand,
+  CopyObjectCommandInput,
   GetObjectTaggingCommand,
   PutObjectTaggingCommand,
 } from '@aws-sdk/client-s3';
@@ -30,7 +31,12 @@ export class AWSS3Provider implements StorageProvider {
     this.region = connection.config.region;
     this.endpoint = connection.config.endpoint;
 
-    const config: any = {
+    const config: {
+      region: string;
+      credentials: { accessKeyId: string; secretAccessKey: string };
+      endpoint?: string;
+      forcePathStyle?: boolean;
+    } = {
       region: connection.config.region,
       credentials: {
         accessKeyId: connection.config.accessKeyId,
@@ -147,7 +153,7 @@ export class AWSS3Provider implements StorageProvider {
 
       // Convert stream to buffer
       const chunks: Uint8Array[] = [];
-      for await (const chunk of response.Body as any) {
+      for await (const chunk of response.Body as AsyncIterable<Uint8Array>) {
         chunks.push(chunk);
       }
 
@@ -275,7 +281,7 @@ export class AWSS3Provider implements StorageProvider {
   ): Promise<void> {
     try {
       // S3 doesn't allow direct metadata updates - we need to copy the object to itself with new metadata
-      const copyParams: any = {
+      const copyParams: CopyObjectCommandInput = {
         Bucket: bucket,
         CopySource: `${bucket}/${key}`,
         Key: key,
@@ -294,7 +300,7 @@ export class AWSS3Provider implements StorageProvider {
 
       // Add storage class
       if (updates.storageClass) {
-        copyParams.StorageClass = updates.storageClass;
+        copyParams.StorageClass = updates.storageClass as CopyObjectCommandInput['StorageClass'];
       }
 
       // Copy object with new metadata

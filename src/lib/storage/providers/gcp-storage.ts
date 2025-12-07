@@ -1,4 +1,4 @@
-import { Storage, Bucket as GCPBucket } from '@google-cloud/storage';
+import { Storage } from '@google-cloud/storage';
 import { StorageProvider } from '../interface';
 import {
   Bucket,
@@ -16,7 +16,11 @@ export class GCPStorageProvider implements StorageProvider {
   constructor(connection: GCPStorageConnection) {
     this.projectId = connection.config.projectId;
 
-    const storageConfig: any = {
+    const storageConfig: {
+      projectId: string;
+      credentials: { client_email: string; private_key: string };
+      apiEndpoint?: string;
+    } = {
       projectId: connection.config.projectId,
       credentials: {
         client_email: connection.config.clientEmail,
@@ -101,7 +105,7 @@ export class GCPStorageProvider implements StorageProvider {
 
       // If using delimiter, add prefixes (folders)
       if (delimiter && apiResponse) {
-        const prefixes = (apiResponse as any).prefixes as string[] | undefined;
+        const prefixes = (apiResponse as { prefixes?: string[] }).prefixes;
         if (prefixes) {
           for (const prefixPath of prefixes) {
             objects.push({
@@ -244,7 +248,11 @@ export class GCPStorageProvider implements StorageProvider {
   ): Promise<void> {
     try {
       const file = this.client.bucket(bucket).file(key);
-      const updateData: any = {};
+      const updateData: {
+        metadata?: Record<string, string>;
+        contentType?: string;
+        storageClass?: string;
+      } = {};
 
       // Update custom metadata
       if (updates.metadata) {

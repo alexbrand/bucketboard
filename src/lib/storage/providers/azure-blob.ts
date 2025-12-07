@@ -1,9 +1,4 @@
-import {
-  BlobServiceClient,
-  StorageSharedKeyCredential,
-  ContainerItem,
-  BlobItem,
-} from '@azure/storage-blob';
+import { BlobServiceClient, StorageSharedKeyCredential } from '@azure/storage-blob';
 import { StorageProvider } from '../interface';
 import {
   Bucket,
@@ -85,8 +80,6 @@ export class AzureBlobProvider implements StorageProvider {
 
       if (delimiter) {
         // Hierarchical listing with delimiter
-        const prefixes = new Set<string>();
-
         for await (const item of containerClient.listBlobsByHierarchy(delimiter, { prefix })) {
           if (item.kind === 'prefix') {
             // This is a folder
@@ -260,7 +253,7 @@ export class AzureBlobProvider implements StorageProvider {
       // Common tiers: Hot, Cool, Archive
       if (updates.storageClass) {
         // Map S3 storage classes to Azure access tiers
-        const tierMap: Record<string, any> = {
+        const tierMap: Record<string, string> = {
           STANDARD: 'Hot',
           STANDARD_IA: 'Cool',
           GLACIER: 'Archive',

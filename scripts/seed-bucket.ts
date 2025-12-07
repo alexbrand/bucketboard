@@ -51,14 +51,16 @@ const CONTENT_TYPES: Record<string, string> = {
 /**
  * Creates a bucket/container if it doesn't exist
  */
+import { StorageProvider } from '../src/lib/storage/interface';
+
 async function ensureBucketExists(
-  provider: any,
+  provider: StorageProvider,
   connection: Connection,
   bucketName: string
 ): Promise<void> {
   try {
     const buckets = await provider.listBuckets();
-    const exists = buckets.some((b: any) => b.name === bucketName);
+    const exists = buckets.some((b) => b.name === bucketName);
 
     if (exists) {
       console.log(`✓ Bucket "${bucketName}" already exists`);
@@ -69,7 +71,12 @@ async function ensureBucketExists(
 
     if (connection.provider === 'aws-s3') {
       const conn = connection as AWSS3Connection;
-      const config: any = {
+      const config: {
+        region: string;
+        credentials: { accessKeyId: string; secretAccessKey: string };
+        endpoint?: string;
+        forcePathStyle?: boolean;
+      } = {
         region: conn.config.region,
         credentials: {
           accessKeyId: conn.config.accessKeyId,
@@ -99,7 +106,11 @@ async function ensureBucketExists(
       console.log(`✓ Created Azure container "${bucketName}"`);
     } else if (connection.provider === 'gcp-storage') {
       const conn = connection as GCPStorageConnection;
-      const storageConfig: any = {
+      const storageConfig: {
+        projectId: string;
+        credentials: { client_email: string; private_key: string };
+        apiEndpoint?: string;
+      } = {
         projectId: conn.config.projectId,
         credentials: {
           client_email: conn.config.clientEmail,
