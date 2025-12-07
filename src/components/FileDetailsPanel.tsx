@@ -259,12 +259,12 @@ export function FileDetailsPanel({
                     <Label className="text-xs font-medium uppercase tracking-wider">
                       Storage Class
                     </Label>
-                    <Select value={editedStorageClass} onValueChange={setEditedStorageClass}>
+                    <Select value={editedStorageClass || 'DEFAULT'} onValueChange={(value) => setEditedStorageClass(value === 'DEFAULT' ? '' : value)}>
                       <SelectTrigger className="mt-2">
                         <SelectValue placeholder="Default" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Default</SelectItem>
+                        <SelectItem value="DEFAULT">Default</SelectItem>
                         <SelectItem value="STANDARD">Standard</SelectItem>
                         <SelectItem value="STANDARD_IA">Standard-IA</SelectItem>
                         <SelectItem value="INTELLIGENT_TIERING">Intelligent-Tiering</SelectItem>
