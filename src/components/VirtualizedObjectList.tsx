@@ -194,11 +194,12 @@ export function VirtualizedObjectList({
   const containerRef = useRef<HTMLDivElement>(null);
   const [listHeight, setListHeight] = useState(0);
 
-  // Calculate header checkbox state
-  const selectedCount = objects.filter((obj) => selectedFiles.has(obj.key)).length;
-  const allSelected = objects.length > 0 && selectedCount === objects.length;
-  const someSelected = selectedCount > 0 && selectedCount < objects.length;
-  const headerCheckboxState = allSelected ? true : someSelected ? 'indeterminate' : false;
+  // Calculate header checkbox state (only consider files, not folders)
+  const filesOnly = objects.filter((obj) => !obj.isFolder);
+  const selectedFilesCount = filesOnly.filter((obj) => selectedFiles.has(obj.key)).length;
+  const allFilesSelected = filesOnly.length > 0 && selectedFilesCount === filesOnly.length;
+  const someFilesSelected = selectedFilesCount > 0 && selectedFilesCount < filesOnly.length;
+  const headerCheckboxState = allFilesSelected ? true : someFilesSelected ? 'indeterminate' : false;
 
   // Measure container height dynamically
   useEffect(() => {
@@ -278,13 +279,14 @@ export function VirtualizedObjectList({
               onCheckedChange={() => {
                 if (onToggleSelectAll) {
                   onToggleSelectAll();
-                } else if (allSelected && onDeselectAll) {
+                } else if (headerCheckboxState === true && onDeselectAll) {
                   onDeselectAll();
                 } else if (onSelectAll) {
                   onSelectAll();
                 }
               }}
               className="border-muted-foreground/50 data-[state=checked]:bg-muted-foreground data-[state=checked]:text-muted data-[state=indeterminate]:bg-muted-foreground/50 focus-visible:outline-none focus-visible:ring-0"
+              title="Select all files (folders excluded)"
             />
           </div>
           <div className="text-sm font-medium text-muted-foreground">

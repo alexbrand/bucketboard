@@ -710,7 +710,9 @@ export default function BucketsPage() {
   };
 
   const selectAllFiltered = () => {
-    setSelectedFiles(new Set(filteredObjects.map((obj) => obj.key)));
+    // Only select files, not folders
+    const filesOnly = filteredObjects.filter((obj) => !obj.isFolder);
+    setSelectedFiles(new Set(filesOnly.map((obj) => obj.key)));
   };
 
   const deselectAll = () => {
@@ -718,9 +720,11 @@ export default function BucketsPage() {
   };
 
   const toggleSelectAll = () => {
-    const allSelected = filteredObjects.length > 0 && 
-      filteredObjects.every((obj) => selectedFiles.has(obj.key));
-    if (allSelected) {
+    // Only check files, not folders
+    const filesOnly = filteredObjects.filter((obj) => !obj.isFolder);
+    const allFilesSelected = filesOnly.length > 0 && 
+      filesOnly.every((obj) => selectedFiles.has(obj.key));
+    if (allFilesSelected) {
       deselectAll();
     } else {
       selectAllFiltered();
