@@ -59,21 +59,19 @@ export function AppSidebar({
   }, []);
 
   // Fetch connections
-  const {
-    data: connectionsData,
-    loading: connectionsLoading,
-  } = useCachedFetch<ConnectionsResponse>(
-    'connections',
-    async () => {
-      const response = await fetch('/api/connections');
-      if (!response.ok) throw new Error('Failed to fetch connections');
-      return response.json();
-    },
-    {
-      ttl: DEFAULT_TTL.CONNECTIONS,
-      useLocalStorage: true,
-    }
-  );
+  const { data: connectionsData, loading: connectionsLoading } =
+    useCachedFetch<ConnectionsResponse>(
+      'connections',
+      async () => {
+        const response = await fetch('/api/connections');
+        if (!response.ok) throw new Error('Failed to fetch connections');
+        return response.json();
+      },
+      {
+        ttl: DEFAULT_TTL.CONNECTIONS,
+        useLocalStorage: true,
+      }
+    );
 
   const connections = connectionsData?.connections || [];
 
@@ -85,10 +83,7 @@ export function AppSidebar({
   }, [connections, selectedCredentialId, onCredentialChange]);
 
   // Fetch buckets
-  const {
-    data: bucketsData,
-    loading: bucketsLoading,
-  } = useCachedFetch<BucketsResponse>(
+  const { data: bucketsData, loading: bucketsLoading } = useCachedFetch<BucketsResponse>(
     createCacheKey('buckets', selectedCredentialId),
     async () => {
       if (!selectedCredentialId) throw new Error('No connection selected');
@@ -104,6 +99,20 @@ export function AppSidebar({
 
   const buckets = bucketsData?.buckets || [];
 
+  // Auto-select first bucket when buckets load
+  useEffect(() => {
+    if (buckets.length > 0 && !bucketsLoading) {
+      // If no bucket is selected, select the first one
+      if (!selectedBucket) {
+        onBucketSelect(buckets[0].name);
+      }
+      // If the selected bucket no longer exists, select the first available one
+      else if (!buckets.some((b) => b.name === selectedBucket)) {
+        onBucketSelect(buckets[0].name);
+      }
+    }
+  }, [buckets, selectedBucket, bucketsLoading, onBucketSelect]);
+
   const selectedConnection = connections.find((c) => c.id === selectedCredentialId);
 
   return (
@@ -114,7 +123,7 @@ export function AppSidebar({
         width: '256px',
         minWidth: '256px',
         maxWidth: '256px',
-        height: '100vh'
+        height: '100vh',
       }}
     >
       {/* Context Selector */}
@@ -149,13 +158,9 @@ export function AppSidebar({
           </div>
 
           {connectionsLoading || bucketsLoading ? (
-            <div className="py-8 text-center text-sm text-muted-foreground">
-              Loading...
-            </div>
+            <div className="py-8 text-center text-sm text-muted-foreground">Loading...</div>
           ) : buckets.length === 0 ? (
-            <div className="py-8 text-center text-sm text-muted-foreground">
-              No buckets found
-            </div>
+            <div className="py-8 text-center text-sm text-muted-foreground">No buckets found</div>
           ) : (
             <nav id="buckets-list" className="space-y-1">
               {buckets.map((bucket) => (
@@ -181,12 +186,7 @@ export function AppSidebar({
       <div className="flex-shrink-0 p-4 flex items-center gap-2">
         {/* Connections link */}
         <Link href="/connections">
-          <Button
-            variant="ghost"
-            size="icon"
-            aria-label="Manage connections"
-            className="h-9 w-9"
-          >
+          <Button variant="ghost" size="icon" aria-label="Manage connections" className="h-9 w-9">
             <Settings className="h-4 w-4" />
           </Button>
         </Link>
