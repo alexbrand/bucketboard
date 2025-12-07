@@ -121,6 +121,9 @@ export default function BucketsPage() {
   // Read-only mode state
   const [readOnly, setReadOnly] = useState<boolean>(false);
 
+  // Drag and drop state
+  const [isDraggingOver, setIsDraggingOver] = useState(false);
+
   // Refs for triggering file uploads
   const fileInputRef = useRef<HTMLInputElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -308,12 +311,10 @@ export default function BucketsPage() {
     }
   };
 
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files;
+  const uploadFiles = async (files: File[]) => {
     if (!files || files.length === 0) return;
     if (readOnly) {
       alert('Write operations are disabled in read-only mode');
-      event.target.value = '';
       return;
     }
 
@@ -463,11 +464,57 @@ export default function BucketsPage() {
     }
 
     setUploadingFile(false);
-    event.target.value = '';
     const baseKey = createCacheKey('objects', selectedBucket, selectedCredentialId);
     const escapedBaseKey = baseKey.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     cacheManager.invalidatePattern(new RegExp(`^${escapedBaseKey}(:.*)?$`));
     await loadObjects();
+  };
+
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
+    await uploadFiles(Array.from(files));
+    event.target.value = '';
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!readOnly && selectedBucket) {
+      setIsDraggingOver(true);
+    }
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    // Only hide overlay if we're leaving the drop zone (not just moving to a child element)
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    const x = e.clientX;
+    const y = e.clientY;
+    if (x < rect.left || x > rect.right || y < rect.top || y > rect.bottom) {
+      setIsDraggingOver(false);
+    }
+  };
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingOver(false);
+
+    if (readOnly) {
+      alert('Write operations are disabled in read-only mode');
+      return;
+    }
+
+    if (!selectedBucket) {
+      return;
+    }
+
+    const files = Array.from(e.dataTransfer.files);
+    if (files.length > 0) {
+      await uploadFiles(files);
+    }
   };
 
   const handleDeleteSelected = async () => {
@@ -1203,7 +1250,24 @@ export default function BucketsPage() {
             </div>
 
             {/* Object List */}
-            <div id="object-list-container" className="flex-1 overflow-hidden p-4">
+            <div
+              id="object-list-container"
+              className="relative flex-1 overflow-hidden p-4"
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+            >
+              {isDraggingOver && !readOnly && selectedBucket && (
+                <div className="absolute inset-0 z-50 flex items-center justify-center bg-primary/10 border-2 border-dashed border-primary rounded-lg">
+                  <div className="text-center">
+                    <Upload className="mx-auto h-12 w-12 text-primary" />
+                    <p className="mt-2 text-lg font-semibold text-primary">Drop files to upload</p>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      Files will be uploaded to {currentPrefix || 'root'}
+                    </p>
+                  </div>
+                </div>
+              )}
               {loading ? (
                 <ObjectListSkeleton showNavigateUp={!!currentPrefix} />
               ) : objects.length === 0 ? (
