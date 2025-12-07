@@ -48,21 +48,19 @@ export default function AnalyticsPage() {
   const [selectedCredentialId, setSelectedCredentialId] = useState<string>('');
 
   // Fetch connections with caching
-  const {
-    data: connectionsData,
-    loading: connectionsLoading,
-  } = useCachedFetch<ConnectionsResponse>(
-    'connections',
-    async () => {
-      const response = await fetch('/api/connections');
-      if (!response.ok) throw new Error('Failed to fetch connections');
-      return response.json();
-    },
-    {
-      ttl: DEFAULT_TTL.CONNECTIONS,
-      useLocalStorage: true,
-    }
-  );
+  const { data: connectionsData, loading: connectionsLoading } =
+    useCachedFetch<ConnectionsResponse>(
+      'connections',
+      async () => {
+        const response = await fetch('/api/connections');
+        if (!response.ok) throw new Error('Failed to fetch connections');
+        return response.json();
+      },
+      {
+        ttl: DEFAULT_TTL.CONNECTIONS,
+        useLocalStorage: true,
+      }
+    );
 
   const connections = connectionsData?.connections || [];
 
@@ -74,10 +72,7 @@ export default function AnalyticsPage() {
   }, [connections, selectedCredentialId]);
 
   // Fetch analytics with caching
-  const {
-    data: analytics,
-    loading,
-  } = useCachedFetch<AnalyticsData>(
+  const { data: analytics, loading } = useCachedFetch<AnalyticsData>(
     createCacheKey('analytics', selectedCredentialId),
     async () => {
       if (!selectedCredentialId) throw new Error('No connection selected');
@@ -149,230 +144,205 @@ export default function AnalyticsPage() {
   return (
     <div id="analytics-page" className="flex overflow-hidden" style={{ height: '100vh' }}>
       <div id="main-content" className="flex-1 overflow-y-auto p-8">
-      <div className="sm:flex sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Storage Analytics</h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            View insights and statistics about your cloud storage
-          </p>
-        </div>
-        <div className="mt-4 sm:ml-16 sm:mt-0">
-          <Select value={selectedCredentialId} onValueChange={setSelectedCredentialId}>
-            <SelectTrigger className="w-[200px]">
-              <SelectValue placeholder="Select connection" />
-            </SelectTrigger>
-            <SelectContent>
-              {connections.map((conn) => (
-                <SelectItem key={conn.id} value={conn.id}>
-                  {conn.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      {loading ? (
-        <div className="mt-8 text-center">
-          <Loader2 className="mx-auto h-8 w-8 animate-spin text-primary" />
-          <p className="mt-2 text-muted-foreground">Loading analytics...</p>
-        </div>
-      ) : analytics ? (
-        <div className="mt-8 space-y-6">
-          {/* Summary Cards */}
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center">
-                  <Package className="h-8 w-8 text-primary" />
-                  <div className="ml-5">
-                    <p className="text-sm font-medium text-muted-foreground">
-                      Total Buckets
-                    </p>
-                    <p className="text-2xl font-semibold">
-                      {analytics.summary.totalBuckets}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center">
-                  <Database className="h-8 w-8 text-green-600" />
-                  <div className="ml-5">
-                    <p className="text-sm font-medium text-muted-foreground">
-                      Total Storage
-                    </p>
-                    <p className="text-2xl font-semibold">
-                      {formatBytes(analytics.summary.totalStorageSize)}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center">
-                  <FileText className="h-8 w-8 text-yellow-600" />
-                  <div className="ml-5">
-                    <p className="text-sm font-medium text-muted-foreground">
-                      Total Objects
-                    </p>
-                    <p className="text-2xl font-semibold">
-                      {analytics.summary.totalObjectCount.toLocaleString()}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center">
-                  <Image className="h-8 w-8 text-purple-600" />
-                  <div className="ml-5">
-                    <p className="text-sm font-medium text-muted-foreground">
-                      File Types
-                    </p>
-                    <p className="text-2xl font-semibold">
-                      {Object.keys(analytics.summary.fileTypes).length}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+        <div className="sm:flex sm:items-center sm:justify-between">
+          <div>
+            <h1 className="text-3xl font-bold">Storage Analytics</h1>
+            <p className="mt-2 text-sm text-muted-foreground">
+              View insights and statistics about your cloud storage
+            </p>
           </div>
-
-          {/* File Types Distribution */}
-          {Object.keys(analytics.summary.fileTypes).length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle>File Types Distribution</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {Object.entries(analytics.summary.fileTypes)
-                    .sort((a, b) => b[1] - a[1])
-                    .slice(0, 10)
-                    .map(([type, count], index) => {
-                      const percentage =
-                        (count / analytics.summary.totalObjectCount) * 100;
-                      return (
-                        <div key={type}>
-                          <div className="flex items-center justify-between text-sm">
-                            <span className="font-medium">
-                              .{type}
-                            </span>
-                            <span className="text-muted-foreground">
-                              {count} files ({percentage.toFixed(1)}%)
-                            </span>
-                          </div>
-                          <div className="mt-1 h-2 w-full overflow-hidden rounded-full bg-muted">
-                            <div
-                              className={`h-full ${getFileTypeColor(index)}`}
-                              style={{ width: `${percentage}%` }}
-                            ></div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Bucket Details */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Bucket Breakdown</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {analytics.buckets.map((bucket) => (
-                  <Card key={bucket.name} className="border">
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <h4 className="text-base font-semibold">
-                          {bucket.name}
-                        </h4>
-                        <span className="text-sm text-muted-foreground">
-                          {formatBytes(bucket.totalSize)}
-                        </span>
-                      </div>
-                      <div className="mt-2 grid grid-cols-2 gap-4 text-sm">
-                        <div>
-                          <p className="text-muted-foreground">Objects</p>
-                          <p className="font-medium">
-                            {bucket.objectCount.toLocaleString()}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-muted-foreground">File Types</p>
-                          <p className="font-medium">
-                            {Object.keys(bucket.fileTypes).length}
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* Largest Files */}
-                      {bucket.largestFiles.length > 0 && (
-                        <div className="mt-3">
-                          <p className="text-xs font-medium uppercase text-muted-foreground">
-                            Largest Files
-                          </p>
-                          <div className="mt-2 space-y-1">
-                            {bucket.largestFiles.map((file) => (
-                              <div
-                                key={file.key}
-                                className="flex items-center justify-between text-xs"
-                              >
-                                <span className="truncate">
-                                  {file.key.split('/').pop()}
-                                </span>
-                                <span className="ml-2 text-muted-foreground">
-                                  {formatBytes(file.size)}
-                                </span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
+          <div className="mt-4 sm:ml-16 sm:mt-0">
+            <Select value={selectedCredentialId} onValueChange={setSelectedCredentialId}>
+              <SelectTrigger className="w-[200px]">
+                <SelectValue placeholder="Select connection" />
+              </SelectTrigger>
+              <SelectContent>
+                {connections.map((conn) => (
+                  <SelectItem key={conn.id} value={conn.id}>
+                    {conn.name}
+                  </SelectItem>
                 ))}
-              </div>
-            </CardContent>
-          </Card>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
 
-          {/* Storage Classes */}
-          {Object.keys(analytics.summary.storageClasses).length > 0 && (
+        {loading ? (
+          <div className="mt-8 text-center">
+            <Loader2 className="mx-auto h-8 w-8 animate-spin text-primary" />
+            <p className="mt-2 text-muted-foreground">Loading analytics...</p>
+          </div>
+        ) : analytics ? (
+          <div className="mt-8 space-y-6">
+            {/* Summary Cards */}
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center">
+                    <Package className="h-8 w-8 text-primary" />
+                    <div className="ml-5">
+                      <p className="text-sm font-medium text-muted-foreground">Total Buckets</p>
+                      <p className="text-2xl font-semibold">{analytics.summary.totalBuckets}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center">
+                    <Database className="h-8 w-8 text-green-600" />
+                    <div className="ml-5">
+                      <p className="text-sm font-medium text-muted-foreground">Total Storage</p>
+                      <p className="text-2xl font-semibold">
+                        {formatBytes(analytics.summary.totalStorageSize)}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center">
+                    <FileText className="h-8 w-8 text-yellow-600" />
+                    <div className="ml-5">
+                      <p className="text-sm font-medium text-muted-foreground">Total Objects</p>
+                      <p className="text-2xl font-semibold">
+                        {analytics.summary.totalObjectCount.toLocaleString()}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center">
+                    <Image className="h-8 w-8 text-purple-600" />
+                    <div className="ml-5">
+                      <p className="text-sm font-medium text-muted-foreground">File Types</p>
+                      <p className="text-2xl font-semibold">
+                        {Object.keys(analytics.summary.fileTypes).length}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* File Types Distribution */}
+            {Object.keys(analytics.summary.fileTypes).length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>File Types Distribution</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {Object.entries(analytics.summary.fileTypes)
+                      .sort((a, b) => b[1] - a[1])
+                      .slice(0, 10)
+                      .map(([type, count], index) => {
+                        const percentage = (count / analytics.summary.totalObjectCount) * 100;
+                        return (
+                          <div key={type}>
+                            <div className="flex items-center justify-between text-sm">
+                              <span className="font-medium">.{type}</span>
+                              <span className="text-muted-foreground">
+                                {count} files ({percentage.toFixed(1)}%)
+                              </span>
+                            </div>
+                            <div className="mt-1 h-2 w-full overflow-hidden rounded-full bg-muted">
+                              <div
+                                className={`h-full ${getFileTypeColor(index)}`}
+                                style={{ width: `${percentage}%` }}
+                              ></div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Bucket Details */}
             <Card>
               <CardHeader>
-                <CardTitle>Storage Classes</CardTitle>
+                <CardTitle>Bucket Breakdown</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-                  {Object.entries(analytics.summary.storageClasses).map(([className, count]) => (
-                    <Card key={className} className="border">
+                <div className="space-y-4">
+                  {analytics.buckets.map((bucket) => (
+                    <Card key={bucket.name} className="border">
                       <CardContent className="p-4">
-                        <p className="text-sm font-medium text-muted-foreground">
-                          {className}
-                        </p>
-                        <p className="mt-1 text-2xl font-semibold">
-                          {count}
-                        </p>
+                        <div className="flex items-center justify-between">
+                          <h4 className="text-base font-semibold">{bucket.name}</h4>
+                          <span className="text-sm text-muted-foreground">
+                            {formatBytes(bucket.totalSize)}
+                          </span>
+                        </div>
+                        <div className="mt-2 grid grid-cols-2 gap-4 text-sm">
+                          <div>
+                            <p className="text-muted-foreground">Objects</p>
+                            <p className="font-medium">{bucket.objectCount.toLocaleString()}</p>
+                          </div>
+                          <div>
+                            <p className="text-muted-foreground">File Types</p>
+                            <p className="font-medium">{Object.keys(bucket.fileTypes).length}</p>
+                          </div>
+                        </div>
+
+                        {/* Largest Files */}
+                        {bucket.largestFiles.length > 0 && (
+                          <div className="mt-3">
+                            <p className="text-xs font-medium uppercase text-muted-foreground">
+                              Largest Files
+                            </p>
+                            <div className="mt-2 space-y-1">
+                              {bucket.largestFiles.map((file) => (
+                                <div
+                                  key={file.key}
+                                  className="flex items-center justify-between text-xs"
+                                >
+                                  <span className="truncate">{file.key.split('/').pop()}</span>
+                                  <span className="ml-2 text-muted-foreground">
+                                    {formatBytes(file.size)}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       </CardContent>
                     </Card>
                   ))}
                 </div>
               </CardContent>
             </Card>
-          )}
-        </div>
-      ) : null}
+
+            {/* Storage Classes */}
+            {Object.keys(analytics.summary.storageClasses).length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Storage Classes</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+                    {Object.entries(analytics.summary.storageClasses).map(([className, count]) => (
+                      <Card key={className} className="border">
+                        <CardContent className="p-4">
+                          <p className="text-sm font-medium text-muted-foreground">{className}</p>
+                          <p className="mt-1 text-2xl font-semibold">{count}</p>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        ) : null}
       </div>
     </div>
   );

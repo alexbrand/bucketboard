@@ -54,57 +54,60 @@ export function useCachedFetch<T>(
     fetcherRef.current = fetcher;
   }, [fetcher]);
 
-  const fetchData = useCallback(async (force = false) => {
-    if (!enabled) return;
+  const fetchData = useCallback(
+    async (force = false) => {
+      if (!enabled) return;
 
-    // Check cache first (unless forcing refresh)
-    if (!force) {
-      const cached = cacheManager.get<T>(cacheKey, cacheOptions);
-      if (cached !== null) {
-        const timestamp = cacheManager.getTimestamp(cacheKey, cacheOptions);
-        setData(cached);
-        setError(null);
-        setLastUpdated(timestamp);
-        setLoading(false);
-        return;
-      }
-    }
-
-    // Cancel any ongoing request
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
-
-    abortControllerRef.current = new AbortController();
-    setLoading(true);
-    setError(null);
-
-    try {
-      // Use ref to get latest fetcher without adding it to dependencies
-      const result = await fetcherRef.current();
-      
-      // Check if request was aborted
-      if (abortControllerRef.current?.signal.aborted) {
-        return;
+      // Check cache first (unless forcing refresh)
+      if (!force) {
+        const cached = cacheManager.get<T>(cacheKey, cacheOptions);
+        if (cached !== null) {
+          const timestamp = cacheManager.getTimestamp(cacheKey, cacheOptions);
+          setData(cached);
+          setError(null);
+          setLastUpdated(timestamp);
+          setLoading(false);
+          return;
+        }
       }
 
-      cacheManager.set(cacheKey, result, cacheOptions);
-      setData(result);
-      setLastUpdated(Date.now());
-    } catch (err) {
-      if (abortControllerRef.current?.signal.aborted) {
-        return;
+      // Cancel any ongoing request
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
       }
 
-      const error = err instanceof Error ? err : new Error('Unknown error');
-      setError(error);
-      console.error(`Error fetching ${cacheKey}:`, error);
-    } finally {
-      if (!abortControllerRef.current?.signal.aborted) {
-        setLoading(false);
+      abortControllerRef.current = new AbortController();
+      setLoading(true);
+      setError(null);
+
+      try {
+        // Use ref to get latest fetcher without adding it to dependencies
+        const result = await fetcherRef.current();
+
+        // Check if request was aborted
+        if (abortControllerRef.current?.signal.aborted) {
+          return;
+        }
+
+        cacheManager.set(cacheKey, result, cacheOptions);
+        setData(result);
+        setLastUpdated(Date.now());
+      } catch (err) {
+        if (abortControllerRef.current?.signal.aborted) {
+          return;
+        }
+
+        const error = err instanceof Error ? err : new Error('Unknown error');
+        setError(error);
+        console.error(`Error fetching ${cacheKey}:`, error);
+      } finally {
+        if (!abortControllerRef.current?.signal.aborted) {
+          setLoading(false);
+        }
       }
-    }
-  }, [cacheKey, enabled, cacheOptions]);
+    },
+    [cacheKey, enabled, cacheOptions]
+  );
 
   const invalidate = useCallback(() => {
     cacheManager.invalidate(cacheKey, cacheOptions);
@@ -118,19 +121,19 @@ export function useCachedFetch<T>(
     // Check cache and set initial state
     const cached = cacheManager.get<T>(cacheKey, cacheOptions);
     const timestamp = cacheManager.getTimestamp(cacheKey, cacheOptions);
-    
+
     if (cached !== null && timestamp !== null) {
       // We have cached data - show it immediately
       setData(cached);
       setLastUpdated(timestamp);
       setError(null);
       setLoading(false);
-      
+
       // Still fetch in background if refetchOnMount is true, or if cache is about to expire
       const cacheAge = Date.now() - timestamp;
       const ttlValue = cacheOptions.ttl || DEFAULT_TTL.OBJECTS;
       const shouldRefetch = refetchOnMount || cacheAge > ttlValue * 0.8; // Refetch if 80% of TTL has passed
-      
+
       if (shouldRefetch) {
         fetchData(true);
       }

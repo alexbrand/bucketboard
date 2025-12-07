@@ -6,10 +6,7 @@ type RouteContext = {
   params: Promise<{ bucket: string }>;
 };
 
-export async function PUT(
-  request: NextRequest,
-  context: RouteContext
-) {
+export async function PUT(request: NextRequest, context: RouteContext) {
   try {
     const { bucket } = await context.params;
     const body = await request.json();

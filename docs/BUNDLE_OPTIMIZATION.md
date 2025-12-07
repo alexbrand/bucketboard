@@ -30,7 +30,8 @@ export async function createStorageProvider(connection: Connection): Promise<Sto
 }
 ```
 
-**Impact**: 
+**Impact**:
+
 - Reduces initial bundle size by ~500KB
 - Only loads the SDK for the provider actually being used
 - All API routes updated to handle async provider creation
@@ -38,11 +39,13 @@ export async function createStorageProvider(connection: Connection): Promise<Sto
 ### 2. Lazy Loading Heavy UI Components
 
 **Components Optimized**:
+
 - `ProgressTracker` - File upload/download progress component
 - `VirtualizedObjectList` - Large list rendering component
 - `ConnectionForm` - Form component with provider-specific fields
 
 **Implementation**:
+
 ```typescript
 // In buckets/page.tsx
 const ProgressTracker = dynamic(
@@ -57,6 +60,7 @@ const VirtualizedObjectList = dynamic(
 ```
 
 **Impact**:
+
 - These components are only loaded when actually needed
 - Reduces initial page load time
 - Components are loaded in parallel when needed
@@ -64,10 +68,12 @@ const VirtualizedObjectList = dynamic(
 ### 3. Next.js Configuration Optimizations
 
 **Turbopack Configuration** (Next.js 16+):
+
 - Enabled Turbopack for faster builds
 - Configured package import optimization for better tree-shaking
 
 **optimizePackageImports**:
+
 ```typescript
 experimental: {
   optimizePackageImports: [
@@ -80,6 +86,7 @@ experimental: {
 ```
 
 **Other Optimizations**:
+
 - Disabled production source maps (`productionBrowserSourceMaps: false`)
 - Enabled compression for static assets
 - Configured modern image formats (AVIF, WebP)
@@ -87,11 +94,13 @@ experimental: {
 ## Performance Benefits
 
 ### Before Optimization:
+
 - All cloud provider SDKs loaded upfront (~500KB)
 - Heavy components loaded on initial page load
 - Larger initial bundle size
 
 ### After Optimization:
+
 - Cloud provider SDKs loaded on-demand (only when needed)
 - Heavy components lazy-loaded (only when displayed)
 - Smaller initial bundle size
@@ -101,6 +110,7 @@ experimental: {
 ## Code Changes Summary
 
 ### Files Modified:
+
 1. `src/lib/storage/provider-factory.ts` - Dynamic imports for SDKs
 2. `src/app/buckets/page.tsx` - Lazy load ProgressTracker & VirtualizedObjectList
 3. `src/app/connections/page.tsx` - Lazy load ConnectionForm
@@ -108,6 +118,7 @@ experimental: {
 5. All API routes - Updated to handle async `createStorageProvider()`
 
 ### API Routes Updated:
+
 - `/api/buckets/route.ts`
 - `/api/buckets/[bucket]/objects/route.ts`
 - `/api/buckets/[bucket]/download/route.ts`
@@ -119,6 +130,7 @@ experimental: {
 ## Testing
 
 All optimizations have been verified:
+
 - ✅ TypeScript compilation passes without errors
 - ✅ Build completes successfully with Turbopack
 - ✅ Dynamic imports work correctly

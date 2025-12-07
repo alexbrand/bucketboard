@@ -54,8 +54,9 @@ The keyboard shortcuts system provides comprehensive keyboard navigation and sho
 ## Keyboard Shortcuts
 
 ### Global (Available Everywhere)
+
 - `H` - Go to Home
-- `B` - Go to Buckets  
+- `B` - Go to Buckets
 - `A` - Go to Analytics
 - `C` - Go to Connections
 - `Shift + ?` - Show keyboard shortcuts help
@@ -63,6 +64,7 @@ The keyboard shortcuts system provides comprehensive keyboard navigation and sho
 ### Object Browser (Buckets Page)
 
 **Actions:**
+
 - `U` - Upload files
 - `N` - Create new folder
 - `R` - Refresh object list
@@ -72,6 +74,7 @@ The keyboard shortcuts system provides comprehensive keyboard navigation and sho
 - `Shift + ?` - Show object browser shortcuts help
 
 **List Navigation:**
+
 - `↓` (Arrow Down) - Navigate down in object list
 - `↑` (Arrow Up) - Navigate up in object list
 - `Enter` - Open focused folder or view file metadata
@@ -98,6 +101,7 @@ The keyboard navigation feature allows users to navigate through files and folde
 #### Focus Index Management
 
 The focus index is zero-based and includes the "Navigate Up" button when present:
+
 - Index 0 = "Navigate Up" button (when in a subfolder)
 - Index 1+ = Actual objects (offset by 1 when "Navigate Up" is shown)
 
@@ -106,10 +110,10 @@ The focus index is zero-based and includes the "Navigate Up" button when present
 ```typescript
 const getFocusedObject = () => {
   if (focusedIndex < 0) return null;
-  
+
   // If "Navigate Up" is shown and focused index is 0, return null (it's the up button)
   if (currentPrefix && focusedIndex === 0) return null;
-  
+
   const objectIndex = currentPrefix ? focusedIndex - 1 : focusedIndex;
   return filteredObjects[objectIndex] || null;
 };
@@ -152,7 +156,7 @@ Fixed modal display issue where the keyboard shortcuts help modal overlay appear
 Potential improvements for keyboard shortcuts and navigation:
 
 - Custom user-defined shortcuts
-- Shortcut conflicts detection  
+- Shortcut conflicts detection
 - Vim-style command mode
 - Shortcut customization UI
 - Type-to-search: Jump to items by typing their first letters

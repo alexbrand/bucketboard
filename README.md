@@ -88,11 +88,13 @@ Support for all major cloud storage platforms:
 ### Installation
 
 1. Install dependencies:
+
    ```bash
    pnpm install
    ```
 
 2. Run the development server:
+
    ```bash
    pnpm dev
    ```
@@ -104,11 +106,13 @@ Support for all major cloud storage platforms:
 For local testing without connecting to real cloud services, you can use the included Docker Compose setup with emulators for all three providers:
 
 1. Start the emulators:
+
    ```bash
    docker compose up -d
    ```
 
 2. Configure connections (see `DOCKER_SETUP.md` for detailed instructions):
+
    ```bash
    mkdir -p data
    cp connections.yaml.example data/connections.yaml

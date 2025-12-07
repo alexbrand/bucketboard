@@ -67,16 +67,11 @@ const ALL_SHORTCUTS: ShortcutGroup[] = [
   },
   {
     title: 'Help',
-    shortcuts: [
-      { key: '?', shiftKey: true, description: 'Show keyboard shortcuts' },
-    ],
+    shortcuts: [{ key: '?', shiftKey: true, description: 'Show keyboard shortcuts' }],
   },
 ];
 
-export function KeyboardShortcutsHelp({
-  isOpen,
-  onClose,
-}: KeyboardShortcutsHelpProps) {
+export function KeyboardShortcutsHelp({ isOpen, onClose }: KeyboardShortcutsHelpProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl">
@@ -102,7 +97,7 @@ export function KeyboardShortcutsHelp({
                     <span className="flex-1 min-w-0 text-sm font-medium text-foreground leading-relaxed break-words">
                       {shortcut.description}
                     </span>
-                    <kbd 
+                    <kbd
                       className="flex-shrink-0 inline-flex items-center gap-1 rounded-md px-2.5 py-1.5 font-mono text-xs font-semibold shadow-md whitespace-nowrap"
                       style={{ backgroundColor: '#27272a', color: '#ffffff' }}
                     >
@@ -115,7 +110,9 @@ export function KeyboardShortcutsHelp({
           ))}
         </div>
         <DialogFooter>
-          <Button variant="default" onClick={onClose}>Close</Button>
+          <Button variant="default" onClick={onClose}>
+            Close
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

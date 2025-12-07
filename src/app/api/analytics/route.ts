@@ -67,7 +67,8 @@ export async function GET(request: NextRequest) {
           // Track storage classes
           if (obj.storageClass) {
             storageClasses[obj.storageClass] = (storageClasses[obj.storageClass] || 0) + 1;
-            globalStorageClasses[obj.storageClass] = (globalStorageClasses[obj.storageClass] || 0) + 1;
+            globalStorageClasses[obj.storageClass] =
+              (globalStorageClasses[obj.storageClass] || 0) + 1;
           }
 
           // Track for largest files

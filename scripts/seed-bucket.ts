@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 /**
  * Bucket Seeding Script
- * 
+ *
  * Seeds a bucket/container with N test files for local testing.
- * 
+ *
  * Usage:
  *   pnpm seed <connectionId> <bucketName> [options]
- * 
+ *
  * Options:
  *   --count, -c    Number of files to create (default: 100)
  *   --prefix, -p   Prefix for file keys (default: '')
@@ -19,7 +19,12 @@ import { createStorageProvider } from '../src/lib/storage/provider-factory';
 import { S3Client, CreateBucketCommand } from '@aws-sdk/client-s3';
 import { BlobServiceClient, StorageSharedKeyCredential } from '@azure/storage-blob';
 import { Storage } from '@google-cloud/storage';
-import { Connection, AWSS3Connection, AzureBlobConnection, GCPStorageConnection } from '../src/lib/types/connections';
+import {
+  Connection,
+  AWSS3Connection,
+  AzureBlobConnection,
+  GCPStorageConnection,
+} from '../src/lib/types/connections';
 
 interface SeedOptions {
   count: number;
@@ -85,7 +90,7 @@ async function ensureBucketExists(
         conn.config.accountName,
         conn.config.accountKey
       );
-      const endpoint = conn.config.endpoint 
+      const endpoint = conn.config.endpoint
         ? conn.config.endpoint
         : `https://${conn.config.accountName}.blob.core.windows.net`;
       const client = new BlobServiceClient(endpoint, sharedKeyCredential);
@@ -109,7 +114,11 @@ async function ensureBucketExists(
       console.log(`✓ Created GCP bucket "${bucketName}"`);
     }
   } catch (error) {
-    if (error instanceof Error && (error.message.includes('already exists') || error.message.includes('BucketAlreadyOwnedByYou'))) {
+    if (
+      error instanceof Error &&
+      (error.message.includes('already exists') ||
+        error.message.includes('BucketAlreadyOwnedByYou'))
+    ) {
       console.log(`✓ Bucket "${bucketName}" already exists`);
     } else {
       throw error;
@@ -134,13 +143,13 @@ function generateFileContent(size: number): Buffer {
  */
 function generateFileKey(index: number, prefix: string, includeFolders: boolean): string {
   const ext = FILE_EXTENSIONS[Math.floor(Math.random() * FILE_EXTENSIONS.length)];
-  
+
   // 10% chance of being in a folder if folders are enabled
   if (includeFolders && Math.random() < 0.1) {
     const folderIndex = Math.floor(Math.random() * 10);
     return `${prefix}folder-${folderIndex.toString().padStart(2, '0')}/file-${index.toString().padStart(6, '0')}.${ext}`;
   }
-  
+
   return `${prefix}file-${index.toString().padStart(6, '0')}.${ext}`;
 }
 

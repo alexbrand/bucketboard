@@ -16,6 +16,7 @@ This directory contains implementation notes and technical documentation for Buc
 ## User-Facing Documentation
 
 For user-facing documentation, see the root directory:
+
 - **`README.md`** - Project overview and getting started guide
 - **`KEYBOARD_SHORTCUTS.md`** - User guide for keyboard shortcuts
 - **`DOCKER_SETUP.md`** - Docker Compose setup instructions

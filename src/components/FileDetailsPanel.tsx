@@ -67,7 +67,12 @@ export function FileDetailsPanel({
   const loadMetadata = async () => {
     if (!selectedObject || selectedObject.isFolder) return;
 
-    const metadataCacheKey = createCacheKey('metadata', bucketName, connectionId, selectedObject.key);
+    const metadataCacheKey = createCacheKey(
+      'metadata',
+      bucketName,
+      connectionId,
+      selectedObject.key
+    );
     const cached = cacheManager.get<ObjectMetadata>(metadataCacheKey, {
       ttl: DEFAULT_TTL.METADATA,
     });
@@ -127,7 +132,12 @@ export function FileDetailsPanel({
 
       if (response.ok) {
         setIsEditingMetadata(false);
-        const metadataCacheKey = createCacheKey('metadata', bucketName, connectionId, selectedObject.key);
+        const metadataCacheKey = createCacheKey(
+          'metadata',
+          bucketName,
+          connectionId,
+          selectedObject.key
+        );
         cacheManager.invalidate(metadataCacheKey, { ttl: DEFAULT_TTL.METADATA });
         cacheManager.invalidatePattern(/^analytics:.*/);
         await loadMetadata();
@@ -186,10 +196,41 @@ export function FileDetailsPanel({
   const isFilePreviewable = (key: string): boolean => {
     const ext = getFileExtension(key);
     const previewableExts = [
-      'jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp', 'ico',
-      'txt', 'json', 'xml', 'html', 'htm', 'css', 'js', 'ts', 'tsx', 'jsx',
-      'md', 'yaml', 'yml', 'csv', 'log', 'py', 'java', 'cpp', 'c', 'h',
-      'cs', 'go', 'rs', 'rb', 'php', 'sh', 'bash',
+      'jpg',
+      'jpeg',
+      'png',
+      'gif',
+      'webp',
+      'svg',
+      'bmp',
+      'ico',
+      'txt',
+      'json',
+      'xml',
+      'html',
+      'htm',
+      'css',
+      'js',
+      'ts',
+      'tsx',
+      'jsx',
+      'md',
+      'yaml',
+      'yml',
+      'csv',
+      'log',
+      'py',
+      'java',
+      'cpp',
+      'c',
+      'h',
+      'cs',
+      'go',
+      'rs',
+      'rb',
+      'php',
+      'sh',
+      'bash',
     ];
     return previewableExts.includes(ext);
   };
@@ -197,7 +238,10 @@ export function FileDetailsPanel({
   if (!selectedObject) return null;
 
   return (
-    <div id="file-details-panel" className="flex h-full w-96 flex-col border-l bg-background shadow-lg">
+    <div
+      id="file-details-panel"
+      className="flex h-full w-96 flex-col border-l bg-background shadow-lg"
+    >
       {/* Header */}
       <div id="details-panel-header" className="flex items-center justify-between px-6 pt-4">
         <h2 className="text-lg font-semibold">Details</h2>
@@ -259,7 +303,12 @@ export function FileDetailsPanel({
                     <Label className="text-xs font-medium uppercase tracking-wider">
                       Storage Class
                     </Label>
-                    <Select value={editedStorageClass || 'DEFAULT'} onValueChange={(value) => setEditedStorageClass(value === 'DEFAULT' ? '' : value)}>
+                    <Select
+                      value={editedStorageClass || 'DEFAULT'}
+                      onValueChange={(value) =>
+                        setEditedStorageClass(value === 'DEFAULT' ? '' : value)
+                      }
+                    >
                       <SelectTrigger className="mt-2">
                         <SelectValue placeholder="Default" />
                       </SelectTrigger>

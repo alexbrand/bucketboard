@@ -45,21 +45,21 @@ export function LastUpdated({ timestamp, className = '' }: LastUpdatedProps) {
 
     // Set up interval that adjusts based on age
     let timer: NodeJS.Timeout | undefined;
-    
+
     const scheduleUpdate = () => {
       const now = Date.now();
       const age = now - timestamp;
-      
+
       // Clear existing timer
       if (timer !== undefined) {
         clearInterval(timer);
         timer = undefined;
       }
-      
+
       // Update every second if less than a minute old, otherwise every minute
       const interval = age < 60000 ? 1000 : 60000;
       timer = setInterval(() => {
-        setTick(t => t + 1);
+        setTick((t) => t + 1);
         // Re-schedule if we've crossed the 1-minute threshold
         const currentAge = Date.now() - timestamp;
         if (currentAge >= 60000 && interval === 1000) {
@@ -67,7 +67,7 @@ export function LastUpdated({ timestamp, className = '' }: LastUpdatedProps) {
         }
       }, interval);
     };
-    
+
     scheduleUpdate();
 
     return () => {

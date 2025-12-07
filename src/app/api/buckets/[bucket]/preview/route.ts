@@ -17,7 +17,7 @@ const CONTENT_TYPE_MAP: Record<string, string> = {
   svg: 'image/svg+xml',
   bmp: 'image/bmp',
   ico: 'image/x-icon',
-  
+
   // Text files
   txt: 'text/plain',
   json: 'application/json',
@@ -34,7 +34,7 @@ const CONTENT_TYPE_MAP: Record<string, string> = {
   yml: 'text/yaml',
   csv: 'text/csv',
   log: 'text/plain',
-  
+
   // Code files
   py: 'text/plain',
   java: 'text/plain',
@@ -57,17 +57,22 @@ function getContentTypeFromKey(key: string, metadataContentType?: string): strin
   // If we have metadata content type and it's previewable, use it
   if (metadataContentType) {
     const type = metadataContentType.toLowerCase();
-    if (type.startsWith('image/') || type.startsWith('text/') || type === 'application/json' || type === 'application/xml') {
+    if (
+      type.startsWith('image/') ||
+      type.startsWith('text/') ||
+      type === 'application/json' ||
+      type === 'application/xml'
+    ) {
       return metadataContentType;
     }
   }
-  
+
   // Otherwise, determine from file extension
   const ext = key.split('.').pop()?.toLowerCase();
   if (ext && CONTENT_TYPE_MAP[ext]) {
     return CONTENT_TYPE_MAP[ext];
   }
-  
+
   return null;
 }
 
@@ -98,13 +103,16 @@ export async function GET(request: NextRequest, context: RouteContext) {
 
     // Get metadata first to check content type
     const metadata = await provider.getObjectMetadata(bucket, key);
-    
+
     // Determine if the file is previewable
     const contentType = getContentTypeFromKey(key, metadata.contentType);
-    
+
     if (!contentType) {
       return NextResponse.json(
-        { error: 'File type not supported for preview', supportedTypes: Array.from(PREVIEWABLE_EXTENSIONS) },
+        {
+          error: 'File type not supported for preview',
+          supportedTypes: Array.from(PREVIEWABLE_EXTENSIONS),
+        },
         { status: 400 }
       );
     }

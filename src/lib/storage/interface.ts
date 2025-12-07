@@ -1,4 +1,10 @@
-import { Bucket, ListObjectsParams, ListObjectsResponse, StorageObject, UpdateMetadataParams } from '../types/storage';
+import {
+  Bucket,
+  ListObjectsParams,
+  ListObjectsResponse,
+  StorageObject,
+  UpdateMetadataParams,
+} from '../types/storage';
 
 export interface StorageProvider {
   testConnection(): Promise<{ success: boolean; message: string }>;

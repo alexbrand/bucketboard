@@ -22,7 +22,7 @@ export function SimpleSidebar() {
         width: '256px',
         minWidth: '256px',
         maxWidth: '256px',
-        height: '100vh'
+        height: '100vh',
       }}
     >
       {/* Logo/Brand */}

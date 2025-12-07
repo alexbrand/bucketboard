@@ -104,9 +104,7 @@ export default function BucketsPage() {
 
   // Progress tracking state
   const [fileProgress, setFileProgress] = useState<FileProgress[]>([]);
-  const [abortControllers, setAbortControllers] = useState<Map<string, AbortController>>(
-    new Map()
-  );
+  const [abortControllers, setAbortControllers] = useState<Map<string, AbortController>>(new Map());
 
   // Keyboard shortcuts context
   const { showHelp, hideHelp } = useShortcuts();
@@ -122,7 +120,12 @@ export default function BucketsPage() {
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   // Fetch objects with caching
-  const objectsCacheKey = createCacheKey('objects', selectedBucket, selectedCredentialId, currentPrefix);
+  const objectsCacheKey = createCacheKey(
+    'objects',
+    selectedBucket,
+    selectedCredentialId,
+    currentPrefix
+  );
   const {
     data: objectsData,
     loading,
@@ -215,7 +218,7 @@ export default function BucketsPage() {
       formData.append('key', folderKey);
 
       const response = await fetch(
-            `/api/buckets/${selectedBucket}/objects?connectionId=${selectedCredentialId}`,
+        `/api/buckets/${selectedBucket}/objects?connectionId=${selectedCredentialId}`,
         {
           method: 'POST',
           body: formData,
@@ -665,10 +668,7 @@ export default function BucketsPage() {
       if (fileType !== fileTypeFilter) return false;
     }
 
-    if (
-      !object.isFolder &&
-      (object.size < sizeFilter.min || object.size > sizeFilter.max)
-    ) {
+    if (!object.isFolder && (object.size < sizeFilter.min || object.size > sizeFilter.max)) {
       return false;
     }
 
@@ -880,8 +880,6 @@ export default function BucketsPage() {
           <>
             {/* Toolbar */}
             <div id="bucket-toolbar" className="bg-background px-4 pt-4">
-              
-
               {/* Folder creation form */}
               {showCreateFolder && (
                 <Card className="mb-4">
@@ -918,7 +916,10 @@ export default function BucketsPage() {
               )}
 
               {/* Search and filters */}
-              <div id="bucket-toolbar-search-and-filters" className="mb-4 flex items-center space-x-2">
+              <div
+                id="bucket-toolbar-search-and-filters"
+                className="mb-4 flex items-center space-x-2"
+              >
                 <div className="relative flex-1">
                   <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                   <Input
@@ -1016,7 +1017,9 @@ export default function BucketsPage() {
                           <Input
                             type="date"
                             value={dateFilter.start}
-                            onChange={(e) => setDateFilter({ ...dateFilter, start: e.target.value })}
+                            onChange={(e) =>
+                              setDateFilter({ ...dateFilter, start: e.target.value })
+                            }
                           />
                           <span className="flex items-center text-muted-foreground">to</span>
                           <Input

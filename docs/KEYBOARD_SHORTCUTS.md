@@ -6,12 +6,12 @@ BucketBoard includes comprehensive keyboard shortcuts to improve navigation effi
 
 These shortcuts work from anywhere in the application:
 
-| Shortcut | Action |
-|----------|--------|
-| `H` | Navigate to Home page |
-| `B` | Navigate to Buckets page |
-| `A` | Navigate to Analytics page |
-| `C` | Navigate to Connections page |
+| Shortcut    | Action                       |
+| ----------- | ---------------------------- |
+| `H`         | Navigate to Home page        |
+| `B`         | Navigate to Buckets page     |
+| `A`         | Navigate to Analytics page   |
+| `C`         | Navigate to Connections page |
 | `Shift + ?` | Show keyboard shortcuts help |
 
 ## Object Browser Shortcuts
@@ -19,25 +19,27 @@ These shortcuts work from anywhere in the application:
 When viewing objects in a bucket, these additional shortcuts are available:
 
 ### Actions
-| Shortcut | Action |
-|----------|--------|
-| `U` | Open file upload dialog |
-| `N` | Create new folder |
-| `R` | Refresh object list |
-| `/` | Focus search input |
-| `Backspace` | Navigate up to parent folder |
-| `Escape` | Cancel/Close current modal or form |
+
+| Shortcut    | Action                             |
+| ----------- | ---------------------------------- |
+| `U`         | Open file upload dialog            |
+| `N`         | Create new folder                  |
+| `R`         | Refresh object list                |
+| `/`         | Focus search input                 |
+| `Backspace` | Navigate up to parent folder       |
+| `Escape`    | Cancel/Close current modal or form |
 | `Shift + ?` | Show object browser shortcuts help |
 
 ### List Navigation
-| Shortcut | Action |
-|----------|--------|
-| `↓` (Arrow Down) | Navigate down in object list |
-| `↑` (Arrow Up) | Navigate up in object list |
-| `Enter` | Open focused folder or view file metadata |
-| `Space` | Toggle selection of focused item (for batch operations) |
-| `Home` | Jump to first item in list |
-| `End` | Jump to last item in list |
+
+| Shortcut         | Action                                                  |
+| ---------------- | ------------------------------------------------------- |
+| `↓` (Arrow Down) | Navigate down in object list                            |
+| `↑` (Arrow Up)   | Navigate up in object list                              |
+| `Enter`          | Open focused folder or view file metadata               |
+| `Space`          | Toggle selection of focused item (for batch operations) |
+| `Home`           | Jump to first item in list                              |
+| `End`            | Jump to last item in list                               |
 
 ## Implementation Details
 

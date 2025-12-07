@@ -5,7 +5,13 @@ import {
   BlobItem,
 } from '@azure/storage-blob';
 import { StorageProvider } from '../interface';
-import { Bucket, ListObjectsParams, ListObjectsResponse, StorageObject, UpdateMetadataParams } from '../../types/storage';
+import {
+  Bucket,
+  ListObjectsParams,
+  ListObjectsResponse,
+  StorageObject,
+  UpdateMetadataParams,
+} from '../../types/storage';
 import { AzureBlobConnection } from '../../types/connections';
 
 export class AzureBlobProvider implements StorageProvider {
@@ -21,14 +27,11 @@ export class AzureBlobProvider implements StorageProvider {
     );
 
     // Use custom endpoint if provided (for Azurite), otherwise use default Azure endpoint
-    const endpoint = connection.config.endpoint 
+    const endpoint = connection.config.endpoint
       ? connection.config.endpoint
       : `https://${connection.config.accountName}.blob.core.windows.net`;
 
-    this.client = new BlobServiceClient(
-      endpoint,
-      sharedKeyCredential
-    );
+    this.client = new BlobServiceClient(endpoint, sharedKeyCredential);
   }
 
   async testConnection(): Promise<{ success: boolean; message: string }> {
@@ -227,7 +230,11 @@ export class AzureBlobProvider implements StorageProvider {
     }
   }
 
-  async updateObjectMetadata(bucket: string, key: string, updates: UpdateMetadataParams): Promise<void> {
+  async updateObjectMetadata(
+    bucket: string,
+    key: string,
+    updates: UpdateMetadataParams
+  ): Promise<void> {
     try {
       const containerClient = this.client.getContainerClient(bucket);
       const blobClient = containerClient.getBlockBlobClient(key);

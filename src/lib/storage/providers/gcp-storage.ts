@@ -1,6 +1,12 @@
 import { Storage, Bucket as GCPBucket } from '@google-cloud/storage';
 import { StorageProvider } from '../interface';
-import { Bucket, ListObjectsParams, ListObjectsResponse, StorageObject, UpdateMetadataParams } from '../../types/storage';
+import {
+  Bucket,
+  ListObjectsParams,
+  ListObjectsResponse,
+  StorageObject,
+  UpdateMetadataParams,
+} from '../../types/storage';
 import { GCPStorageConnection } from '../../types/connections';
 
 export class GCPStorageProvider implements StorageProvider {
@@ -52,7 +58,7 @@ export class GCPStorageProvider implements StorageProvider {
         // locationType indicates if it's "region" or "multi-region"
         const location = bucket.metadata.location as string | undefined;
         const locationType = bucket.metadata.locationType as string | undefined;
-        
+
         // Format region string: if it's a region, use it directly; if multi-region, prefix with "multi-"
         let region: string | undefined;
         if (location) {
@@ -231,7 +237,11 @@ export class GCPStorageProvider implements StorageProvider {
     }
   }
 
-  async updateObjectMetadata(bucket: string, key: string, updates: UpdateMetadataParams): Promise<void> {
+  async updateObjectMetadata(
+    bucket: string,
+    key: string,
+    updates: UpdateMetadataParams
+  ): Promise<void> {
     try {
       const file = this.client.bucket(bucket).file(key);
       const updateData: any = {};

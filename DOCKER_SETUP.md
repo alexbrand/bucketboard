@@ -13,28 +13,32 @@ The setup includes three emulator services:
 ## Quick Start
 
 1. **Start the emulators:**
+
    ```bash
    docker compose up -d
    ```
 
 2. **Verify services are running:**
+
    ```bash
    docker compose ps
    ```
 
 3. **Check service health:**
+
    ```bash
    # LocalStack
    curl http://localhost:4566/_localstack/health
-   
+
    # Azurite
    curl http://localhost:10000/devstoreaccount1
-   
+
    # fake-gcs-server
    curl http://localhost:4443/storage/v1/b
    ```
 
 4. **Stop the emulators:**
+
    ```bash
    docker compose down
    ```
@@ -65,7 +69,6 @@ mkdir -p data
 cp connections.yaml.example data/connections.yaml
 ```
 
-
 Or add connections manually to your `data/connections.yaml` file using the following templates:
 
 #### AWS S3 (LocalStack)
@@ -81,8 +84,8 @@ connections:
       secretAccessKey: ${AWS_SECRET_ACCESS_KEY:-test}
       region: ${AWS_REGION:-us-east-1}
       endpoint: ${LOCALSTACK_ENDPOINT:-http://localhost:4566}
-    createdAt: "2024-01-01T00:00:00.000Z"
-    updatedAt: "2024-01-01T00:00:00.000Z"
+    createdAt: '2024-01-01T00:00:00.000Z'
+    updatedAt: '2024-01-01T00:00:00.000Z'
 ```
 
 #### Azure Blob Storage (Azurite)
@@ -97,8 +100,8 @@ connections:
       accountName: ${AZURE_STORAGE_ACCOUNT_NAME:-devstoreaccount1}
       accountKey: ${AZURE_STORAGE_ACCOUNT_KEY:-Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==}
       endpoint: http://localhost:10000/devstoreaccount1
-    createdAt: "2024-01-01T00:00:00.000Z"
-    updatedAt: "2024-01-01T00:00:00.000Z"
+    createdAt: '2024-01-01T00:00:00.000Z'
+    updatedAt: '2024-01-01T00:00:00.000Z'
 ```
 
 #### Google Cloud Storage (fake-gcs-server)
@@ -114,8 +117,8 @@ connections:
       clientEmail: ${GCP_SERVICE_ACCOUNT_EMAIL:-test@test-project.iam.gserviceaccount.com}
       privateKey: ${GCP_PRIVATE_KEY:------BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC...\n-----END PRIVATE KEY-----\n}
       apiEndpoint: http://localhost:4443
-    createdAt: "2024-01-01T00:00:00.000Z"
-    updatedAt: "2024-01-01T00:00:00.000Z"
+    createdAt: '2024-01-01T00:00:00.000Z'
+    updatedAt: '2024-01-01T00:00:00.000Z'
 ```
 
 **Note:** For fake-gcs-server, you need to provide a valid service account JSON structure. The emulator doesn't validate credentials, but the GCP SDK requires a properly formatted private key. You can generate a dummy key or use the example format above.
@@ -210,6 +213,7 @@ curl -X POST "http://localhost:4443/storage/v1/b?project=test-project" \
 ### Connection errors
 
 - Ensure services are healthy:
+
   ```bash
   docker compose ps
   ```

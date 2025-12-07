@@ -211,11 +211,7 @@ class CacheManager {
   /**
    * Prefetch data (non-blocking)
    */
-  async prefetch<T>(
-    key: string,
-    fetcher: () => Promise<T>,
-    options?: CacheOptions
-  ): Promise<void> {
+  async prefetch<T>(key: string, fetcher: () => Promise<T>, options?: CacheOptions): Promise<void> {
     // Don't prefetch if already in queue or cache
     if (this.prefetchQueue.has(key) || this.get<T>(key, options)) {
       return;

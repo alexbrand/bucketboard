@@ -7,9 +7,7 @@ export function LayoutContent({ children }: { children: React.ReactNode }) {
   return (
     <ShortcutsProvider>
       <GlobalKeyboardShortcuts />
-      <div className="h-screen overflow-hidden bg-background">
-        {children}
-      </div>
+      <div className="h-screen overflow-hidden bg-background">{children}</div>
     </ShortcutsProvider>
   );
 }

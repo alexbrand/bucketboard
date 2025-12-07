@@ -138,14 +138,7 @@ const RowComponent = ({
       >
         {(() => {
           const IconComponent = getFileIcon(object.key, object.isFolder);
-          return (
-            <IconComponent
-              className={cn(
-                'h-5 w-5 flex-shrink-0',
-                'text-primary'
-              )}
-            />
-          );
+          return <IconComponent className={cn('h-5 w-5 flex-shrink-0', 'text-primary')} />;
         })()}
         <span className="ml-3 text-sm font-medium truncate">
           {object.key.split('/').filter(Boolean).pop()}

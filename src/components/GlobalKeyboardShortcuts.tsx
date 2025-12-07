@@ -55,10 +55,7 @@ export function GlobalKeyboardShortcuts() {
         <Keyboard className="h-5 w-5" />
       </Button>
 
-      <KeyboardShortcutsHelp
-        isOpen={isOpen}
-        onClose={hideHelp}
-      />
+      <KeyboardShortcutsHelp isOpen={isOpen} onClose={hideHelp} />
     </>
   );
 }

@@ -224,7 +224,8 @@ export function ConnectionForm({ onSuccess, onCancel }: ConnectionFormProps) {
               placeholder="https://s3.example.com"
             />
             <p className="text-xs text-muted-foreground">
-              Leave empty for AWS S3. For S3-compatible services (MinIO, Backblaze B2, DigitalOcean Spaces, Wasabi), provide the endpoint URL.
+              Leave empty for AWS S3. For S3-compatible services (MinIO, Backblaze B2, DigitalOcean
+              Spaces, Wasabi), provide the endpoint URL.
             </p>
           </div>
         </>

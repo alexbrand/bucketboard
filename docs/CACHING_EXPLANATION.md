@@ -14,6 +14,7 @@ The system uses two storage layers:
 ### 2. Cache Entry Structure
 
 Each cached entry contains:
+
 ```typescript
 {
   data: <the actual data>,
@@ -43,6 +44,7 @@ When you request data:
 ### 5. Cache Key Structure
 
 Cache keys are constructed from relevant identifiers:
+
 ```
 objects:bucket-name:connection-id:prefix
 metadata:bucket-name:connection-id:file-key
@@ -105,24 +107,30 @@ The cache is automatically invalidated when you:
 ## Potential Improvements
 
 ### Option 1: Add Manual Refresh Button
+
 ```typescript
 // Add a refresh button that calls refetch()
 <button onClick={() => refetchObjects()}>Refresh</button>
 ```
 
 ### Option 2: Reduce TTL for Objects
+
 ```typescript
 OBJECTS: 30 * 1000, // 30 seconds instead of 1 minute
 ```
 
 ### Option 3: Add "Last Updated" Indicator
+
 Show users when the data was last fetched:
+
 ```typescript
-"Last updated: 45 seconds ago"
+'Last updated: 45 seconds ago';
 ```
 
 ### Option 4: Implement Polling (Advanced)
+
 Periodically check for changes:
+
 ```typescript
 useEffect(() => {
   const interval = setInterval(() => {
@@ -133,7 +141,9 @@ useEffect(() => {
 ```
 
 ### Option 5: Add ETag/Version Checking (Most Robust)
+
 Check if data has changed before showing stale cache:
+
 ```typescript
 // API returns ETag header
 // Compare with cached ETag
@@ -143,15 +153,18 @@ Check if data has changed before showing stale cache:
 ## Code Locations
 
 ### Cache Implementation
+
 - `src/lib/utils/cache.ts` - Core caching logic
 - `src/lib/utils/use-cached-fetch.ts` - React hook for cached fetching
 
 ### Cache Usage
+
 - `src/app/buckets/page.tsx` - Buckets and objects listing
 - `src/app/analytics/page.tsx` - Analytics data
 - `src/app/connections/page.tsx` - Connections list
 
 ### Cache Invalidation
+
 - File upload: `src/app/buckets/page.tsx:366`
 - File delete: `src/app/buckets/page.tsx:557`
 - Metadata update: `src/app/buckets/page.tsx:811`
@@ -159,7 +172,7 @@ Check if data has changed before showing stale cache:
 
 ## Summary
 
-**The caching system prioritizes performance over real-time accuracy.** 
+**The caching system prioritizes performance over real-time accuracy.**
 
 - ✅ **Fast**: Cached data loads instantly
 - ✅ **Reduces API calls**: Saves bandwidth and API costs

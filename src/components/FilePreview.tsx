@@ -24,14 +24,38 @@ interface FilePreviewProps {
 // Determine file type from extension
 function getFileType(key: string): 'image' | 'text' | 'unsupported' {
   const ext = key.split('.').pop()?.toLowerCase() || '';
-  
+
   const imageExts = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp', 'ico'];
   const textExts = [
-    'txt', 'json', 'xml', 'html', 'htm', 'css', 'js', 'ts', 'tsx', 'jsx',
-    'md', 'yaml', 'yml', 'csv', 'log', 'py', 'java', 'cpp', 'c', 'h',
-    'cs', 'go', 'rs', 'rb', 'php', 'sh', 'bash',
+    'txt',
+    'json',
+    'xml',
+    'html',
+    'htm',
+    'css',
+    'js',
+    'ts',
+    'tsx',
+    'jsx',
+    'md',
+    'yaml',
+    'yml',
+    'csv',
+    'log',
+    'py',
+    'java',
+    'cpp',
+    'c',
+    'h',
+    'cs',
+    'go',
+    'rs',
+    'rb',
+    'php',
+    'sh',
+    'bash',
   ];
-  
+
   if (imageExts.includes(ext)) return 'image';
   if (textExts.includes(ext)) return 'text';
   return 'unsupported';
@@ -40,7 +64,7 @@ function getFileType(key: string): 'image' | 'text' | 'unsupported' {
 // Get language for syntax highlighting class
 function getLanguageFromExtension(key: string): string {
   const ext = key.split('.').pop()?.toLowerCase() || '';
-  
+
   const langMap: Record<string, string> = {
     js: 'javascript',
     jsx: 'javascript',
@@ -66,7 +90,7 @@ function getLanguageFromExtension(key: string): string {
     yaml: 'yaml',
     yml: 'yaml',
   };
-  
+
   return langMap[ext] || 'plaintext';
 }
 
@@ -82,21 +106,21 @@ export function FilePreview({
   const [error, setError] = useState<string | null>(null);
   const [textContent, setTextContent] = useState<string>('');
   const [imageUrl, setImageUrl] = useState<string>('');
-  
+
   const fileType = getFileType(objectKey);
 
   // Load preview content
   const loadPreview = useCallback(async () => {
     if (!isOpen) return;
-    
+
     setLoading(true);
     setError(null);
     setTextContent('');
     setImageUrl('');
-    
+
     try {
       const previewUrl = `/api/buckets/${bucketName}/preview?connectionId=${connectionId}&key=${encodeURIComponent(objectKey)}`;
-      
+
       if (fileType === 'image') {
         // For images, just set the URL
         setImageUrl(previewUrl);
@@ -104,12 +128,14 @@ export function FilePreview({
       } else if (fileType === 'text') {
         // For text files, fetch and display content
         const response = await fetch(previewUrl);
-        
+
         if (!response.ok) {
-          const errorData = await response.json().catch(() => ({ error: 'Failed to load preview' }));
+          const errorData = await response
+            .json()
+            .catch(() => ({ error: 'Failed to load preview' }));
           throw new Error(errorData.error || 'Failed to load preview');
         }
-        
+
         const text = await response.text();
         setTextContent(text);
         setLoading(false);
@@ -138,7 +164,7 @@ export function FilePreview({
         onClose();
       }
     };
-    
+
     window.addEventListener('keydown', handleEscape);
     return () => window.removeEventListener('keydown', handleEscape);
   }, [isOpen, onClose]);
@@ -152,7 +178,7 @@ export function FilePreview({
             {fileType === 'image' ? 'Image' : fileType === 'text' ? 'Text File' : 'Unsupported'}
           </DialogDescription>
         </DialogHeader>
-        
+
         <div className="flex-1 overflow-auto p-6">
           {loading && (
             <div className="flex h-full items-center justify-center min-h-[400px]">
@@ -162,7 +188,7 @@ export function FilePreview({
               </div>
             </div>
           )}
-          
+
           {error && (
             <div className="flex h-full items-center justify-center min-h-[400px]">
               <div className="text-center">
@@ -175,7 +201,7 @@ export function FilePreview({
               </div>
             </div>
           )}
-          
+
           {!loading && !error && fileType === 'image' && imageUrl && (
             <div className="flex h-full items-center justify-center min-h-[400px]">
               <img
@@ -186,16 +212,18 @@ export function FilePreview({
               />
             </div>
           )}
-          
+
           {!loading && !error && fileType === 'text' && textContent && (
             <div className="h-full">
-              <pre className={`overflow-auto rounded-lg border bg-muted p-4 text-sm language-${getLanguageFromExtension(objectKey)}`}>
+              <pre
+                className={`overflow-auto rounded-lg border bg-muted p-4 text-sm language-${getLanguageFromExtension(objectKey)}`}
+              >
                 <code>{textContent}</code>
               </pre>
             </div>
           )}
         </div>
-        
+
         <DialogFooter className="px-6 py-4 border-t">
           <Button variant="outline" onClick={onClose}>
             Close

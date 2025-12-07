@@ -12,7 +12,13 @@ import {
   PutObjectTaggingCommand,
 } from '@aws-sdk/client-s3';
 import { StorageProvider } from '../interface';
-import { Bucket, ListObjectsParams, ListObjectsResponse, StorageObject, UpdateMetadataParams } from '../../types/storage';
+import {
+  Bucket,
+  ListObjectsParams,
+  ListObjectsResponse,
+  StorageObject,
+  UpdateMetadataParams,
+} from '../../types/storage';
 import { AWSS3Connection } from '../../types/connections';
 
 export class AWSS3Provider implements StorageProvider {
@@ -47,11 +53,11 @@ export class AWSS3Provider implements StorageProvider {
       // Test connection by listing buckets
       const command = new ListBucketsCommand({});
       await this.client.send(command);
-      
-      const target = this.endpoint 
+
+      const target = this.endpoint
         ? `S3-compatible storage at ${this.endpoint}`
         : `AWS S3 (${this.region})`;
-      
+
       return {
         success: true,
         message: `Successfully connected to ${target}`,
@@ -229,12 +235,15 @@ export class AWSS3Provider implements StorageProvider {
           Key: key,
         });
         const tagResponse = await this.client.send(tagCommand);
-        tags = (tagResponse.TagSet || []).reduce((acc, tag) => {
-          if (tag.Key && tag.Value) {
-            acc[tag.Key] = tag.Value;
-          }
-          return acc;
-        }, {} as Record<string, string>);
+        tags = (tagResponse.TagSet || []).reduce(
+          (acc, tag) => {
+            if (tag.Key && tag.Value) {
+              acc[tag.Key] = tag.Value;
+            }
+            return acc;
+          },
+          {} as Record<string, string>
+        );
       } catch (error) {
         // Tags may not be accessible, continue without them
         console.warn('Could not fetch tags:', error);
@@ -259,7 +268,11 @@ export class AWSS3Provider implements StorageProvider {
     }
   }
 
-  async updateObjectMetadata(bucket: string, key: string, updates: UpdateMetadataParams): Promise<void> {
+  async updateObjectMetadata(
+    bucket: string,
+    key: string,
+    updates: UpdateMetadataParams
+  ): Promise<void> {
     try {
       // S3 doesn't allow direct metadata updates - we need to copy the object to itself with new metadata
       const copyParams: any = {

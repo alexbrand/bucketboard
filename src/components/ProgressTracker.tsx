@@ -3,7 +3,16 @@
 import { useState } from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ChevronDown, X, Upload, Download, CheckCircle2, XCircle, Clock, Loader2 } from 'lucide-react';
+import {
+  ChevronDown,
+  X,
+  Upload,
+  Download,
+  CheckCircle2,
+  XCircle,
+  Clock,
+  Loader2,
+} from 'lucide-react';
 
 export interface FileProgress {
   id: string;
@@ -24,7 +33,7 @@ interface ProgressTrackerProps {
 
 export function ProgressTracker({ items, onClose, onCancel }: ProgressTrackerProps) {
   const [isMinimized, setIsMinimized] = useState(false);
-  
+
   if (items.length === 0) return null;
 
   const completedCount = items.filter((item) => item.status === 'completed').length;
@@ -32,9 +41,10 @@ export function ProgressTracker({ items, onClose, onCancel }: ProgressTrackerPro
   const activeCount = items.filter(
     (item) => item.status === 'uploading' || item.status === 'downloading'
   ).length;
-  const totalProgress = items.length > 0 
-    ? Math.round(items.reduce((sum, item) => sum + item.progress, 0) / items.length)
-    : 0;
+  const totalProgress =
+    items.length > 0
+      ? Math.round(items.reduce((sum, item) => sum + item.progress, 0) / items.length)
+      : 0;
 
   const formatBytes = (bytes?: number): string => {
     if (!bytes) return '';
@@ -68,12 +78,10 @@ export function ProgressTracker({ items, onClose, onCancel }: ProgressTrackerPro
             </h3>
           </div>
           <div className="flex items-center space-x-2">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setIsMinimized(!isMinimized)}
-            >
-              <ChevronDown className={`h-4 w-4 transition-transform ${isMinimized ? 'rotate-180' : ''}`} />
+            <Button variant="ghost" size="icon" onClick={() => setIsMinimized(!isMinimized)}>
+              <ChevronDown
+                className={`h-4 w-4 transition-transform ${isMinimized ? 'rotate-180' : ''}`}
+              />
             </Button>
             {activeCount === 0 && onClose && (
               <Button variant="ghost" size="icon" onClick={onClose}>
@@ -110,9 +118,7 @@ export function ProgressTracker({ items, onClose, onCancel }: ProgressTrackerPro
                   <div className="flex items-start justify-between">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center space-x-2">
-                        {item.status === 'uploading' && (
-                          <Upload className="h-4 w-4 text-primary" />
-                        )}
+                        {item.status === 'uploading' && <Upload className="h-4 w-4 text-primary" />}
                         {item.status === 'downloading' && (
                           <Download className="h-4 w-4 text-primary" />
                         )}
@@ -125,16 +131,14 @@ export function ProgressTracker({ items, onClose, onCancel }: ProgressTrackerPro
                         {item.status === 'pending' && (
                           <Clock className="h-4 w-4 text-muted-foreground" />
                         )}
-                        <p className="truncate text-sm font-medium">
-                          {item.filename}
-                        </p>
+                        <p className="truncate text-sm font-medium">{item.filename}</p>
                       </div>
-                      {item.error && (
-                        <p className="mt-1 text-xs text-destructive">{item.error}</p>
-                      )}
+                      {item.error && <p className="mt-1 text-xs text-destructive">{item.error}</p>}
                       {item.size && (
                         <div className="mt-1 flex items-center space-x-2 text-xs text-muted-foreground">
-                          <span>{formatBytes(item.loaded || 0)} / {formatBytes(item.size)}</span>
+                          <span>
+                            {formatBytes(item.loaded || 0)} / {formatBytes(item.size)}
+                          </span>
                         </div>
                       )}
                       {(item.status === 'uploading' || item.status === 'downloading') && (
@@ -149,17 +153,20 @@ export function ProgressTracker({ items, onClose, onCancel }: ProgressTrackerPro
                         </div>
                       )}
                     </div>
-                    {(item.status === 'uploading' || item.status === 'downloading' || item.status === 'pending') && onCancel && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="ml-2 h-6 w-6"
-                        onClick={() => onCancel(item.id)}
-                        title="Cancel"
-                      >
-                        <X className="h-3 w-3" />
-                      </Button>
-                    )}
+                    {(item.status === 'uploading' ||
+                      item.status === 'downloading' ||
+                      item.status === 'pending') &&
+                      onCancel && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="ml-2 h-6 w-6"
+                          onClick={() => onCancel(item.id)}
+                          title="Cancel"
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                      )}
                   </div>
                 </div>
               ))}

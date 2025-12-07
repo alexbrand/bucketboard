@@ -61,4 +61,3 @@
 - [x] Optimize bundle size and lazy loading
 - [x] Add keyboard shortcuts for navigation
 - [x] Add file preview capabilities (images, text files)
-

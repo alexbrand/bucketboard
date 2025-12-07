@@ -1,7 +1,4 @@
-export type StorageProvider =
-  | 'aws-s3'
-  | 'azure-blob'
-  | 'gcp-storage';
+export type StorageProvider = 'aws-s3' | 'azure-blob' | 'gcp-storage';
 
 export interface ConnectionBase {
   id: string;
@@ -40,9 +37,6 @@ export interface GCPStorageConnection extends ConnectionBase {
   };
 }
 
-export type Connection =
-  | AWSS3Connection
-  | AzureBlobConnection
-  | GCPStorageConnection;
+export type Connection = AWSS3Connection | AzureBlobConnection | GCPStorageConnection;
 
 export type { StorageProvider };

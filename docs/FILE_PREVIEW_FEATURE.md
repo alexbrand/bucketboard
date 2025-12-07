@@ -11,6 +11,7 @@ The file preview feature allows users to quickly preview images and text files d
 **Location**: `src/app/api/buckets/[bucket]/preview/route.ts`
 
 **Features**:
+
 - Serves files with `Content-Disposition: inline` for browser preview
 - Automatically detects content type from file extension and metadata
 - Supports caching with `Cache-Control` headers (1 hour)
@@ -19,9 +20,11 @@ The file preview feature allows users to quickly preview images and text files d
 **Supported File Types**:
 
 #### Images
+
 - JPG/JPEG, PNG, GIF, WebP, SVG, BMP, ICO
 
 #### Text Files
+
 - Plain text: `.txt`, `.log`
 - Markup: `.html`, `.htm`, `.xml`, `.md`, `.csv`
 - Stylesheets: `.css`
@@ -33,6 +36,7 @@ The file preview feature allows users to quickly preview images and text files d
 **Location**: `src/components/FilePreview.tsx`
 
 **Features**:
+
 - Modal-based interface with overlay
 - Responsive design that works on all screen sizes
 - Automatic content type detection
@@ -44,6 +48,7 @@ The file preview feature allows users to quickly preview images and text files d
 - Text viewer with syntax-aware formatting
 
 **UI Elements**:
+
 - Header with file name and type indicator
 - Close button (X icon)
 - Content area with scrolling for large files
@@ -54,12 +59,14 @@ The file preview feature allows users to quickly preview images and text files d
 **Location**: `src/app/buckets/page.tsx`
 
 **Features Added**:
+
 - Preview button in the metadata panel (green button with eye icon)
 - Shows only for previewable file types
 - Keyboard shortcut: `p` key to preview selected file
 - Automatic state management for preview modal
 
 **User Flow**:
+
 1. User selects a file in the object list
 2. If the file is previewable, a "Preview" button appears in the metadata panel
 3. User clicks "Preview" or presses `p` key

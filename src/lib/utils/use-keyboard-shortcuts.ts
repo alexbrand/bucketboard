@@ -60,14 +60,17 @@ export function useKeyboardShortcuts(shortcuts: KeyboardShortcut[], enabled: boo
 }
 
 // Type for formatting shortcuts - only includes properties needed for display
-export type ShortcutForDisplay = Pick<KeyboardShortcut, 'key' | 'ctrlKey' | 'metaKey' | 'shiftKey' | 'altKey'>;
+export type ShortcutForDisplay = Pick<
+  KeyboardShortcut,
+  'key' | 'ctrlKey' | 'metaKey' | 'shiftKey' | 'altKey'
+>;
 
 export function formatShortcut(shortcut: ShortcutForDisplay): string {
   const parts: string[] = [];
-  const isMac = typeof window !== 'undefined' && (
-    navigator.platform?.toUpperCase().indexOf('MAC') >= 0 ||
-    navigator.userAgent?.toUpperCase().indexOf('MAC') >= 0
-  );
+  const isMac =
+    typeof window !== 'undefined' &&
+    (navigator.platform?.toUpperCase().indexOf('MAC') >= 0 ||
+      navigator.userAgent?.toUpperCase().indexOf('MAC') >= 0);
 
   if (shortcut.ctrlKey) parts.push(isMac ? '⌃' : 'Ctrl');
   if (shortcut.metaKey) parts.push(isMac ? '⌘' : 'Cmd');
