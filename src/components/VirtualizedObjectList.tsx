@@ -30,7 +30,7 @@ interface VirtualizedObjectListProps {
   onFileHover?: (object: StorageObject) => void;
   focusedIndex?: number;
   isKeyboardMode?: boolean;
-  onMouseInteraction?: () => void;
+  onMouseInteraction?: (index: number) => void;
 }
 
 interface RowData {
@@ -47,7 +47,7 @@ interface RowData {
   onFileHover?: (object: StorageObject) => void;
   focusedIndex?: number;
   isKeyboardMode?: boolean;
-  onMouseInteraction?: () => void;
+  onMouseInteraction?: (index: number) => void;
 }
 
 const RowComponent = ({
@@ -89,7 +89,7 @@ const RowComponent = ({
         onClick={onNavigateUp}
         onMouseEnter={() => {
           if (onMouseInteraction) {
-            onMouseInteraction();
+            onMouseInteraction(index);
           }
         }}
       >
@@ -130,7 +130,7 @@ const RowComponent = ({
       )}
       onMouseEnter={() => {
         if (onMouseInteraction) {
-          onMouseInteraction();
+          onMouseInteraction(index);
         }
         if (object.isFolder && onFolderHover) {
           onFolderHover(object.key);

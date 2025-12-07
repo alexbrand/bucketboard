@@ -1207,7 +1207,10 @@ export default function BucketsPage() {
                     onFileHover={handleFileHover}
                     focusedIndex={focusedIndex}
                     isKeyboardMode={isKeyboardMode}
-                    onMouseInteraction={() => setIsKeyboardMode(false)}
+                    onMouseInteraction={(index) => {
+                      setIsKeyboardMode(false);
+                      setFocusedIndex(index);
+                    }}
                   />
                 </Card>
               )}
