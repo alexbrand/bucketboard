@@ -1130,7 +1130,7 @@ export default function BucketsPage() {
                   </div>
                 </div>
               ) : (
-                <Card className="h-full overflow-hidden">
+                <Card className="h-full overflow-hidden shadow-none">
                   <VirtualizedObjectList
                     objects={filteredObjects}
                     selectedFiles={selectedFiles}

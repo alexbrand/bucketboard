@@ -242,7 +242,7 @@ export function VirtualizedObjectList({
   };
 
   return (
-    <div ref={containerRef} className="h-full overflow-hidden rounded-lg border">
+    <div ref={containerRef} className="h-full overflow-hidden">
       {listHeight > 0 && (
         <List<RowData>
           listRef={listRef}
