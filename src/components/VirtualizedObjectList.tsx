@@ -75,18 +75,23 @@ const RowComponent = ({
   if (showNavigateUp && index === 0) {
     const isFocused = focusedIndex === 0;
     return (
-      <div style={style}>
-        <Button
-          variant="ghost"
-          onClick={onNavigateUp}
-          className={cn(
-            'w-full justify-start rounded-none cursor-pointer',
-            isFocused && 'ring-2 ring-inset ring-ring'
-          )}
-        >
-          <ArrowUp className="h-5 w-5 text-muted-foreground" />
+      <div
+        style={style}
+        className={cn(
+          'grid grid-cols-[auto_1fr_120px_200px] items-center gap-4 border-b px-6 py-3 hover:bg-accent cursor-pointer',
+          isFocused && 'ring-2 ring-inset ring-ring'
+        )}
+        onClick={onNavigateUp}
+      >
+        <div className="flex items-center justify-center h-4 w-4">
+          {/* Placeholder for checkbox alignment */}
+        </div>
+        <div className="flex items-center min-w-0">
+          <ArrowUp className="h-5 w-5 flex-shrink-0 text-muted-foreground" />
           <span className="ml-3 text-sm font-medium">Go up</span>
-        </Button>
+        </div>
+        <div></div>
+        <div></div>
       </div>
     );
   }
@@ -106,7 +111,7 @@ const RowComponent = ({
     <div
       style={style}
       className={cn(
-        'grid grid-cols-[auto_1fr_auto_auto] items-center gap-4 border-b px-6 py-3 hover:bg-accent cursor-pointer',
+        'grid grid-cols-[auto_1fr_120px_200px] items-center gap-4 border-b px-6 py-3 hover:bg-accent cursor-pointer',
         isSelected && 'bg-primary/5',
         isFocused && 'ring-2 ring-inset ring-ring'
       )}
@@ -118,11 +123,13 @@ const RowComponent = ({
         }
       }}
     >
-      <Checkbox
-        checked={selectedFiles.has(object.key)}
-        onCheckedChange={() => onToggleFileSelection(object.key)}
-        className="border-muted-foreground/50 data-[state=checked]:bg-muted-foreground data-[state=checked]:text-muted"
-      />
+      <div className="flex items-center justify-center">
+        <Checkbox
+          checked={selectedFiles.has(object.key)}
+          onCheckedChange={() => onToggleFileSelection(object.key)}
+          className="border-muted-foreground/50 data-[state=checked]:bg-muted-foreground data-[state=checked]:text-muted"
+        />
+      </div>
       <button
         onClick={() =>
           object.isFolder ? onNavigateToFolder(object.key) : onViewObjectMetadata(object)
@@ -144,10 +151,10 @@ const RowComponent = ({
           {object.key.split('/').filter(Boolean).pop()}
         </span>
       </button>
-      <div className="text-right text-sm text-muted-foreground">
+      <div className="text-right text-sm text-muted-foreground flex items-center justify-end">
         {!object.isFolder && formatBytes(object.size)}
       </div>
-      <div className="text-right text-sm text-muted-foreground whitespace-nowrap">
+      <div className="text-right text-sm text-muted-foreground whitespace-nowrap flex items-center justify-end">
         {!object.isFolder && new Date(object.lastModified).toLocaleString()}
       </div>
     </div>
