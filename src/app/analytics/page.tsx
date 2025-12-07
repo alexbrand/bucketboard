@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { SimpleSidebar } from '@/components/SimpleSidebar';
 import { StorageProvider } from '@/lib/types/connections';
 import { useCachedFetch, createCacheKey, DEFAULT_TTL } from '@/lib/utils/use-cached-fetch';
 import { Button } from '@/components/ui/button';
@@ -117,7 +116,6 @@ export default function AnalyticsPage() {
   if (connectionsLoading) {
     return (
       <div id="analytics-page" className="flex overflow-hidden" style={{ height: '100vh' }}>
-        <SimpleSidebar />
         <div id="main-content" className="flex flex-1 items-center justify-center">
           <div className="text-center">
             <Loader2 className="mx-auto h-8 w-8 animate-spin text-primary" />
@@ -131,7 +129,6 @@ export default function AnalyticsPage() {
   if (connections.length === 0) {
     return (
       <div id="analytics-page" className="flex overflow-hidden" style={{ height: '100vh' }}>
-        <SimpleSidebar />
         <div id="main-content" className="flex flex-1 items-center justify-center p-8">
           <div className="text-center">
             <h2 className="text-2xl font-bold">No connections found</h2>
@@ -151,7 +148,6 @@ export default function AnalyticsPage() {
 
   return (
     <div id="analytics-page" className="flex overflow-hidden" style={{ height: '100vh' }}>
-      <SimpleSidebar />
       <div id="main-content" className="flex-1 overflow-y-auto p-8">
       <div className="sm:flex sm:items-center sm:justify-between">
         <div>

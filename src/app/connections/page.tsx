@@ -2,12 +2,19 @@
 
 import { useState, Fragment } from 'react';
 import dynamic from 'next/dynamic';
-import { SimpleSidebar } from '@/components/SimpleSidebar';
+import Link from 'next/link';
 import { StorageProvider } from '@/lib/types/connections';
 import { useCachedFetch } from '@/lib/utils/use-cached-fetch';
 import { cacheManager } from '@/lib/utils/cache';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import {
   Table,
   TableBody,
@@ -17,7 +24,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { CheckCircle2, XCircle, X, Key } from 'lucide-react';
+import { CheckCircle2, XCircle, X, Key, Zap, Trash2, Package, Loader2 } from 'lucide-react';
 
 // Lazy load ConnectionForm component
 const ConnectionForm = dynamic(
@@ -135,7 +142,6 @@ export default function ConnectionsPage() {
   if (loading) {
     return (
       <div id="connections-page" className="flex overflow-hidden" style={{ height: '100vh' }}>
-        <SimpleSidebar />
         <div id="main-content" className="flex flex-1 items-center justify-center">
           <p className="text-muted-foreground">Loading connections...</p>
         </div>
@@ -145,7 +151,6 @@ export default function ConnectionsPage() {
 
   return (
     <div id="connections-page" className="flex overflow-hidden" style={{ height: '100vh' }}>
-      <SimpleSidebar />
       <div id="main-content" className="flex-1 overflow-y-auto p-8">
       <div className="sm:flex sm:items-center sm:justify-between">
         <div>
@@ -161,26 +166,25 @@ export default function ConnectionsPage() {
         </div>
       </div>
 
-      {showAddForm && (
-        <div className="mt-8">
-          <Card>
-            <CardHeader>
-              <CardTitle>Add New Connection</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ConnectionForm
-                onSuccess={() => {
-                  setShowAddForm(false);
-                  // Invalidate connections cache
-                  cacheManager.invalidate('connections', { useLocalStorage: true });
-                  loadConnections();
-                }}
-                onCancel={() => setShowAddForm(false)}
-              />
-            </CardContent>
-          </Card>
-        </div>
-      )}
+      <Dialog open={showAddForm} onOpenChange={setShowAddForm}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Add New Connection</DialogTitle>
+            <DialogDescription>
+              Configure a new cloud storage provider connection
+            </DialogDescription>
+          </DialogHeader>
+          <ConnectionForm
+            onSuccess={() => {
+              setShowAddForm(false);
+              // Invalidate connections cache
+              cacheManager.invalidate('connections', { useLocalStorage: true });
+              loadConnections();
+            }}
+            onCancel={() => setShowAddForm(false)}
+          />
+        </DialogContent>
+      </Dialog>
 
       <div className="mt-8">
         {connections.length === 0 ? (
@@ -213,27 +217,54 @@ export default function ConnectionsPage() {
                 {connections.map((connection) => (
                   <Fragment key={connection.id}>
                     <TableRow>
-                      <TableCell className="font-medium">{connection.name}</TableCell>
+                      <TableCell className="font-medium">
+                        <Link 
+                          href={`/buckets?connectionId=${connection.id}`}
+                          className="text-primary hover:underline cursor-pointer"
+                        >
+                          {connection.name}
+                        </Link>
+                      </TableCell>
                       <TableCell>{getProviderLabel(connection.provider)}</TableCell>
                       <TableCell>{new Date(connection.createdAt).toLocaleDateString()}</TableCell>
                       <TableCell className="text-right">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleTestConnection(connection.id)}
-                          disabled={testingConnectionId === connection.id}
-                          className="mr-2"
-                        >
-                          {testingConnectionId === connection.id ? 'Testing...' : 'Test'}
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDelete(connection.id)}
-                          className="text-destructive hover:text-destructive"
-                        >
-                          Delete
-                        </Button>
+                        <div className="flex items-center justify-end gap-2">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleTestConnection(connection.id)}
+                            disabled={testingConnectionId === connection.id}
+                            aria-label="Test connection"
+                            title="Test connection"
+                          >
+                            {testingConnectionId === connection.id ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <Zap className="h-4 w-4" />
+                            )}
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            asChild
+                            aria-label="View buckets"
+                            title="View buckets"
+                          >
+                            <Link href={`/buckets?connectionId=${connection.id}`}>
+                              <Package className="h-4 w-4" />
+                            </Link>
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleDelete(connection.id)}
+                            className="text-destructive hover:text-destructive"
+                            aria-label="Delete connection"
+                            title="Delete connection"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                     {testResults[connection.id] && (

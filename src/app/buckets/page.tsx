@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useRef, Fragment } from 'react';
+import { useState, useRef, Fragment, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import { AppSidebar } from '@/components/AppSidebar';
 import { FileDetailsPanel } from '@/components/FileDetailsPanel';
@@ -66,6 +67,7 @@ interface ObjectsResponse {
 }
 
 export default function BucketsPage() {
+  const searchParams = useSearchParams();
   const [selectedCredentialId, setSelectedCredentialId] = useState<string>('');
   const [selectedBucket, setSelectedBucket] = useState<string>('');
   const [currentPrefix, setCurrentPrefix] = useState<string>('');
@@ -74,6 +76,18 @@ export default function BucketsPage() {
   const [newFolderName, setNewFolderName] = useState('');
   const [uploadingFile, setUploadingFile] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<Set<string>>(new Set());
+
+  // Read connectionId from URL parameters
+  useEffect(() => {
+    const connectionId = searchParams.get('connectionId');
+    if (connectionId && connectionId !== selectedCredentialId) {
+      setSelectedCredentialId(connectionId);
+      // Reset bucket selection when connection changes
+      setSelectedBucket('');
+      setCurrentPrefix('');
+      setSelectedObject(null);
+    }
+  }, [searchParams, selectedCredentialId]);
 
   // Search and filter state
   const [searchQuery, setSearchQuery] = useState('');
