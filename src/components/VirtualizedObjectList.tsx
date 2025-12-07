@@ -21,6 +21,9 @@ interface VirtualizedObjectListProps {
   selectedFiles: Set<string>;
   selectedObject: StorageObject | null;
   onToggleFileSelection: (key: string) => void;
+  onSelectAll?: () => void;
+  onDeselectAll?: () => void;
+  onToggleSelectAll?: () => void;
   onNavigateToFolder: (key: string) => void;
   onViewObjectMetadata: (object: StorageObject) => void;
   formatBytes: (bytes: number) => string;
@@ -173,6 +176,9 @@ export function VirtualizedObjectList({
   selectedFiles,
   selectedObject,
   onToggleFileSelection,
+  onSelectAll,
+  onDeselectAll,
+  onToggleSelectAll,
   onNavigateToFolder,
   onViewObjectMetadata,
   formatBytes,
@@ -188,13 +194,21 @@ export function VirtualizedObjectList({
   const containerRef = useRef<HTMLDivElement>(null);
   const [listHeight, setListHeight] = useState(0);
 
+  // Calculate header checkbox state
+  const selectedCount = objects.filter((obj) => selectedFiles.has(obj.key)).length;
+  const allSelected = objects.length > 0 && selectedCount === objects.length;
+  const someSelected = selectedCount > 0 && selectedCount < objects.length;
+  const headerCheckboxState = allSelected ? true : someSelected ? 'indeterminate' : false;
+
   // Measure container height dynamically
   useEffect(() => {
     const updateHeight = () => {
       if (containerRef.current) {
         const height = containerRef.current.clientHeight;
         if (height > 0) {
-          setListHeight(height);
+          // Subtract header height if header is shown
+          const headerHeight = objects.length > 0 ? 40 : 0;
+          setListHeight(Math.max(0, height - headerHeight));
         }
       }
     };
@@ -211,7 +225,7 @@ export function VirtualizedObjectList({
     return () => {
       resizeObserver.disconnect();
     };
-  }, []);
+  }, [objects.length]);
 
   // Scroll to top when objects change
   useEffect(() => {
@@ -254,19 +268,50 @@ export function VirtualizedObjectList({
   };
 
   return (
-    <div ref={containerRef} className="h-full overflow-hidden">
-      {listHeight > 0 && (
-        <List<RowData>
-          listRef={listRef}
-          // @ts-expect-error - react-window List component accepts height prop but types are incorrect
-          height={listHeight}
-          rowCount={itemCount}
-          rowHeight={rowHeight}
-          rowComponent={RowComponent}
-          rowProps={rowProps}
-          className="scrollbar-thin"
-        />
+    <div ref={containerRef} className="h-full overflow-hidden flex flex-col">
+      {/* Header row with select all checkbox */}
+      {objects.length > 0 && (
+        <div className="grid grid-cols-[auto_1fr_120px_200px] items-center gap-4 border-b bg-muted/30 px-6 py-3">
+          <div className="flex items-center justify-center">
+            <Checkbox
+              checked={headerCheckboxState === true ? true : headerCheckboxState === 'indeterminate' ? ('indeterminate' as any) : false}
+              onCheckedChange={() => {
+                if (onToggleSelectAll) {
+                  onToggleSelectAll();
+                } else if (allSelected && onDeselectAll) {
+                  onDeselectAll();
+                } else if (onSelectAll) {
+                  onSelectAll();
+                }
+              }}
+              className="border-muted-foreground/50 data-[state=checked]:bg-muted-foreground data-[state=checked]:text-muted data-[state=indeterminate]:bg-muted-foreground/50 focus-visible:outline-none focus-visible:ring-0"
+            />
+          </div>
+          <div className="text-sm font-medium text-muted-foreground">
+            Name
+          </div>
+          <div className="text-right text-sm font-medium text-muted-foreground">
+            Size
+          </div>
+          <div className="text-right text-sm font-medium text-muted-foreground">
+            Modified
+          </div>
+        </div>
       )}
+      <div className="flex-1 overflow-hidden">
+        {listHeight > 0 && (
+          <List<RowData>
+            listRef={listRef}
+            // @ts-expect-error - react-window List component accepts height prop but types are incorrect
+            height={listHeight}
+            rowCount={itemCount}
+            rowHeight={rowHeight}
+            rowComponent={RowComponent}
+            rowProps={rowProps}
+            className="scrollbar-thin"
+          />
+        )}
+      </div>
     </div>
   );
 }

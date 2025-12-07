@@ -709,6 +709,24 @@ export default function BucketsPage() {
     setSelectedFiles(newSelection);
   };
 
+  const selectAllFiltered = () => {
+    setSelectedFiles(new Set(filteredObjects.map((obj) => obj.key)));
+  };
+
+  const deselectAll = () => {
+    setSelectedFiles(new Set());
+  };
+
+  const toggleSelectAll = () => {
+    const allSelected = filteredObjects.length > 0 && 
+      filteredObjects.every((obj) => selectedFiles.has(obj.key));
+    if (allSelected) {
+      deselectAll();
+    } else {
+      selectAllFiltered();
+    }
+  };
+
   const viewObjectMetadata = async (object: StorageObject) => {
     setSelectedObject(object);
   };
@@ -937,6 +955,24 @@ export default function BucketsPage() {
       description: 'Show shortcuts help',
       action: () => showHelp(),
       ignoreInInput: false,
+    },
+    {
+      key: 'a',
+      ctrlKey: true,
+      description: 'Select all / Deselect all',
+      action: () => {
+        toggleSelectAll();
+      },
+      ignoreInInput: true,
+    },
+    {
+      key: 'a',
+      metaKey: true,
+      description: 'Select all / Deselect all',
+      action: () => {
+        toggleSelectAll();
+      },
+      ignoreInInput: true,
     },
   ];
 
@@ -1300,6 +1336,9 @@ export default function BucketsPage() {
                     selectedFiles={selectedFiles}
                     selectedObject={selectedObject}
                     onToggleFileSelection={toggleFileSelection}
+                    onSelectAll={selectAllFiltered}
+                    onDeselectAll={deselectAll}
+                    onToggleSelectAll={toggleSelectAll}
                     onNavigateToFolder={navigateToFolder}
                     onViewObjectMetadata={viewObjectMetadata}
                     formatBytes={formatBytes}
