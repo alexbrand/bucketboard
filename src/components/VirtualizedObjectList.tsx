@@ -29,6 +29,8 @@ interface VirtualizedObjectListProps {
   onFolderHover?: (key: string) => void;
   onFileHover?: (object: StorageObject) => void;
   focusedIndex?: number;
+  isKeyboardMode?: boolean;
+  onMouseInteraction?: () => void;
 }
 
 interface RowData {
@@ -44,6 +46,8 @@ interface RowData {
   onFolderHover?: (key: string) => void;
   onFileHover?: (object: StorageObject) => void;
   focusedIndex?: number;
+  isKeyboardMode?: boolean;
+  onMouseInteraction?: () => void;
 }
 
 const RowComponent = ({
@@ -67,6 +71,8 @@ const RowComponent = ({
     onFolderHover,
     onFileHover,
     focusedIndex,
+    isKeyboardMode,
+    onMouseInteraction,
   } = data;
 
   // Handle "Navigate Up" button
@@ -76,10 +82,16 @@ const RowComponent = ({
       <div
         style={style}
         className={cn(
-          'grid grid-cols-[auto_1fr_120px_200px] items-center gap-4 border-b px-6 py-3 hover:bg-accent cursor-pointer',
-          isFocused && 'ring-2 ring-inset ring-ring'
+          'grid grid-cols-[auto_1fr_120px_200px] items-center gap-4 border-b px-6 py-3 cursor-pointer outline-none',
+          !isKeyboardMode && 'hover:bg-accent',
+          isFocused && 'bg-accent'
         )}
         onClick={onNavigateUp}
+        onMouseEnter={() => {
+          if (onMouseInteraction) {
+            onMouseInteraction();
+          }
+        }}
       >
         <div className="flex items-center justify-center h-4 w-4">
           {/* Placeholder for checkbox alignment */}
@@ -110,11 +122,16 @@ const RowComponent = ({
     <div
       style={style}
       className={cn(
-        'grid grid-cols-[auto_1fr_120px_200px] items-center gap-4 border-b px-6 py-3 hover:bg-accent cursor-pointer',
-        isSelected && 'bg-primary/5',
-        isFocused && 'ring-2 ring-inset ring-ring'
+        'grid grid-cols-[auto_1fr_120px_200px] items-center gap-4 border-b px-6 py-3 cursor-pointer outline-none',
+        !isKeyboardMode && 'hover:bg-accent',
+        isSelected && 'border-l-2 border-l-primary',
+        isSelected && !isFocused && 'bg-primary/5',
+        isFocused && 'bg-accent'
       )}
       onMouseEnter={() => {
+        if (onMouseInteraction) {
+          onMouseInteraction();
+        }
         if (object.isFolder && onFolderHover) {
           onFolderHover(object.key);
         } else if (!object.isFolder && onFileHover) {
@@ -133,7 +150,7 @@ const RowComponent = ({
         onClick={() =>
           object.isFolder ? onNavigateToFolder(object.key) : onViewObjectMetadata(object)
         }
-        className="flex items-center min-w-0 text-left cursor-pointer"
+        className="flex items-center min-w-0 text-left cursor-pointer outline-none"
       >
         {/* eslint-disable-next-line react-hooks/static-components */}
         <IconComponent className={cn('h-5 w-5 flex-shrink-0', 'text-primary')} />
@@ -164,6 +181,8 @@ export function VirtualizedObjectList({
   onFolderHover,
   onFileHover,
   focusedIndex = -1,
+  isKeyboardMode = false,
+  onMouseInteraction,
 }: VirtualizedObjectListProps) {
   const listRef = useListRef(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -230,6 +249,8 @@ export function VirtualizedObjectList({
     onFolderHover,
     onFileHover,
     focusedIndex,
+    isKeyboardMode,
+    onMouseInteraction,
   };
 
   return (

@@ -113,6 +113,7 @@ export default function BucketsPage() {
 
   // Keyboard navigation in object list
   const [focusedIndex, setFocusedIndex] = useState<number>(-1);
+  const [isKeyboardMode, setIsKeyboardMode] = useState<boolean>(false);
 
   // File preview state
   const [previewFile, setPreviewFile] = useState<StorageObject | null>(null);
@@ -801,6 +802,7 @@ export default function BucketsPage() {
       description: 'Navigate down in object list',
       action: () => {
         if (totalItemCount > 0) {
+          setIsKeyboardMode(true);
           setFocusedIndex((prev) => Math.min(prev + 1, totalItemCount - 1));
         }
       },
@@ -811,6 +813,7 @@ export default function BucketsPage() {
       description: 'Navigate up in object list',
       action: () => {
         if (totalItemCount > 0) {
+          setIsKeyboardMode(true);
           setFocusedIndex((prev) => (prev <= 0 ? 0 : prev - 1));
         }
       },
@@ -820,6 +823,7 @@ export default function BucketsPage() {
       key: 'Enter',
       description: 'Open focused folder or view file metadata',
       action: () => {
+        setIsKeyboardMode(true);
         if (currentPrefix && focusedIndex === 0) {
           navigateUp();
           return;
@@ -840,6 +844,7 @@ export default function BucketsPage() {
       key: ' ',
       description: 'Toggle selection of focused item',
       action: () => {
+        setIsKeyboardMode(true);
         const focusedObject = getFocusedObject();
         if (focusedObject) {
           toggleFileSelection(focusedObject.key);
@@ -1201,6 +1206,8 @@ export default function BucketsPage() {
                     onFolderHover={handleFolderHover}
                     onFileHover={handleFileHover}
                     focusedIndex={focusedIndex}
+                    isKeyboardMode={isKeyboardMode}
+                    onMouseInteraction={() => setIsKeyboardMode(false)}
                   />
                 </Card>
               )}
