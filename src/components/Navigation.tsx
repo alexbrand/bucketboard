@@ -31,7 +31,7 @@ export function Navigation() {
           </Link>
         </Button>
         <Button asChild variant="ghost" size="sm">
-          <Link href="/credentials" title="Credentials">
+          <Link href="/connections" title="Connections">
             <Key className="h-4 w-4" />
           </Link>
         </Button>

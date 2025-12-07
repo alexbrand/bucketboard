@@ -6,24 +6,24 @@ import {
 } from '@azure/storage-blob';
 import { StorageProvider } from '../interface';
 import { Bucket, ListObjectsParams, ListObjectsResponse, StorageObject, UpdateMetadataParams } from '../../types/storage';
-import { AzureBlobCredentials } from '../../types/credentials';
+import { AzureBlobConnection } from '../../types/connections';
 
 export class AzureBlobProvider implements StorageProvider {
   private client: BlobServiceClient;
   private accountName: string;
 
-  constructor(credentials: AzureBlobCredentials) {
-    this.accountName = credentials.config.accountName;
+  constructor(connection: AzureBlobConnection) {
+    this.accountName = connection.config.accountName;
 
     const sharedKeyCredential = new StorageSharedKeyCredential(
-      credentials.config.accountName,
-      credentials.config.accountKey
+      connection.config.accountName,
+      connection.config.accountKey
     );
 
     // Use custom endpoint if provided (for Azurite), otherwise use default Azure endpoint
-    const endpoint = credentials.config.endpoint 
-      ? credentials.config.endpoint
-      : `https://${credentials.config.accountName}.blob.core.windows.net`;
+    const endpoint = connection.config.endpoint 
+      ? connection.config.endpoint
+      : `https://${connection.config.accountName}.blob.core.windows.net`;
 
     this.client = new BlobServiceClient(
       endpoint,
@@ -52,8 +52,8 @@ export class AzureBlobProvider implements StorageProvider {
     try {
       // Note: Azure Blob Storage location is at the storage account level, not container level.
       // To get the location, we would need to use the Azure Resource Manager API, which requires
-      // additional credentials (subscription ID, resource group) that are not in the current
-      // credential structure. For now, region will be undefined for Azure containers.
+      // additional connection details (subscription ID, resource group) that are not in the current
+      // connection structure. For now, region will be undefined for Azure containers.
       const buckets: Bucket[] = [];
 
       for await (const container of this.client.listContainers()) {

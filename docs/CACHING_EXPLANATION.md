@@ -9,7 +9,7 @@ The caching system uses a **Time-To-Live (TTL)** approach with automatic expirat
 The system uses two storage layers:
 
 - **Memory Cache**: Fast in-memory storage (Map) - cleared when page refreshes
-- **localStorage**: Persistent browser storage - survives page refreshes (only for credentials)
+- **localStorage**: Persistent browser storage - survives page refreshes (only for connections)
 
 ### 2. Cache Entry Structure
 
@@ -26,7 +26,7 @@ Each cached entry contains:
 
 Different data types have different cache durations:
 
-- **Credentials**: 5 minutes (persisted to localStorage)
+- **Connections**: 5 minutes (persisted to localStorage)
 - **Buckets**: 2 minutes
 - **Objects/Files**: 1 minute
 - **Metadata**: 30 seconds
@@ -44,9 +44,9 @@ When you request data:
 
 Cache keys are constructed from relevant identifiers:
 ```
-objects:bucket-name:credential-id:prefix
-metadata:bucket-name:credential-id:file-key
-analytics:credential-id
+objects:bucket-name:connection-id:prefix
+metadata:bucket-name:connection-id:file-key
+analytics:connection-id
 ```
 
 ## What Happens When Files Are Added Outside the App?
@@ -69,7 +69,7 @@ The cache is automatically invalidated when you:
 ✅ **Upload files** → Invalidates object cache for that bucket/prefix
 ✅ **Delete files** → Invalidates object cache for that bucket/prefix  
 ✅ **Update metadata** → Invalidates metadata cache for that file + analytics cache
-✅ **Add/delete credentials** → Invalidates credentials cache
+✅ **Add/delete connections** → Invalidates connections cache
 
 ### What's NOT Automatically Invalidated
 
@@ -149,13 +149,13 @@ Check if data has changed before showing stale cache:
 ### Cache Usage
 - `src/app/buckets/page.tsx` - Buckets and objects listing
 - `src/app/analytics/page.tsx` - Analytics data
-- `src/app/credentials/page.tsx` - Credentials list
+- `src/app/connections/page.tsx` - Connections list
 
 ### Cache Invalidation
 - File upload: `src/app/buckets/page.tsx:366`
 - File delete: `src/app/buckets/page.tsx:557`
 - Metadata update: `src/app/buckets/page.tsx:811`
-- Credential changes: `src/app/credentials/page.tsx`
+- Connection changes: `src/app/connections/page.tsx`
 
 ## Summary
 

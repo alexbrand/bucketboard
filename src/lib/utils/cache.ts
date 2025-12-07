@@ -16,7 +16,7 @@ export interface CacheOptions {
 
 // Default TTL values (in milliseconds)
 export const DEFAULT_TTL = {
-  CREDENTIALS: 5 * 60 * 1000, // 5 minutes
+  CONNECTIONS: 5 * 60 * 1000, // 5 minutes
   BUCKETS: 2 * 60 * 1000, // 2 minutes
   OBJECTS: 1 * 60 * 1000, // 1 minute
   METADATA: 30 * 1000, // 30 seconds

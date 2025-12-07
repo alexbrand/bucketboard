@@ -39,7 +39,7 @@ const ALL_SHORTCUTS: ShortcutGroup[] = [
       { key: 'h', description: 'Go to Home' },
       { key: 'b', description: 'Go to Buckets' },
       { key: 'a', description: 'Go to Analytics' },
-      { key: 'c', description: 'Go to Credentials' },
+      { key: 'c', description: 'Go to Connections' },
     ],
   },
   {

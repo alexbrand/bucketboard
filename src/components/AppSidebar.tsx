@@ -11,11 +11,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { StorageProvider } from '@/lib/types/credentials';
+import { StorageProvider } from '@/lib/types/connections';
 import { useCachedFetch, createCacheKey, DEFAULT_TTL } from '@/lib/utils/use-cached-fetch';
 import { Card } from '@/components/ui/card';
 
-interface Credential {
+interface Connection {
   id: string;
   name: string;
   provider: StorageProvider;
@@ -27,13 +27,13 @@ interface Bucket {
   region?: string;
 }
 
-interface CredentialsResponse {
-  credentials: Credential[];
+interface ConnectionsResponse {
+  connections: Connection[];
 }
 
 interface BucketsResponse {
   buckets: Bucket[];
-  credentialId: string;
+  connectionId: string;
 }
 
 interface AppSidebarProps {
@@ -57,31 +57,31 @@ export function AppSidebar({
     setMounted(true);
   }, []);
 
-  // Fetch credentials
+  // Fetch connections
   const {
-    data: credentialsData,
-    loading: credentialsLoading,
-  } = useCachedFetch<CredentialsResponse>(
-    'credentials',
+    data: connectionsData,
+    loading: connectionsLoading,
+  } = useCachedFetch<ConnectionsResponse>(
+    'connections',
     async () => {
-      const response = await fetch('/api/credentials');
-      if (!response.ok) throw new Error('Failed to fetch credentials');
+      const response = await fetch('/api/connections');
+      if (!response.ok) throw new Error('Failed to fetch connections');
       return response.json();
     },
     {
-      ttl: DEFAULT_TTL.CREDENTIALS,
+      ttl: DEFAULT_TTL.CONNECTIONS,
       useLocalStorage: true,
     }
   );
 
-  const credentials = credentialsData?.credentials || [];
+  const connections = connectionsData?.connections || [];
 
-  // Auto-select first credential when credentials load
+  // Auto-select first connection when connections load
   useEffect(() => {
-    if (credentials.length > 0 && !selectedCredentialId) {
-      onCredentialChange(credentials[0].id);
+    if (connections.length > 0 && !selectedCredentialId) {
+      onCredentialChange(connections[0].id);
     }
-  }, [credentials, selectedCredentialId, onCredentialChange]);
+  }, [connections, selectedCredentialId, onCredentialChange]);
 
   // Fetch buckets
   const {
@@ -90,8 +90,8 @@ export function AppSidebar({
   } = useCachedFetch<BucketsResponse>(
     createCacheKey('buckets', selectedCredentialId),
     async () => {
-      if (!selectedCredentialId) throw new Error('No credential selected');
-      const response = await fetch(`/api/buckets?credentialId=${selectedCredentialId}`);
+      if (!selectedCredentialId) throw new Error('No connection selected');
+      const response = await fetch(`/api/buckets?connectionId=${selectedCredentialId}`);
       if (!response.ok) throw new Error('Failed to fetch buckets');
       return response.json();
     },
@@ -103,7 +103,7 @@ export function AppSidebar({
 
   const buckets = bucketsData?.buckets || [];
 
-  const selectedCredential = credentials.find((c) => c.id === selectedCredentialId);
+  const selectedConnection = connections.find((c) => c.id === selectedCredentialId);
 
   return (
     <aside
@@ -117,19 +117,19 @@ export function AppSidebar({
       }}
     >
       {/* Context Selector */}
-      <div id="credential-selector" className="flex-shrink-0 p-4">
+      <div id="connection-selector" className="flex-shrink-0 p-4">
         <Select value={selectedCredentialId} onValueChange={onCredentialChange}>
           <SelectTrigger className="w-full">
-            <SelectValue placeholder="Select credential" />
+            <SelectValue placeholder="Select connection" />
           </SelectTrigger>
           <SelectContent>
-            {credentials.map((cred) => (
-              <SelectItem key={cred.id} value={cred.id}>
+            {connections.map((conn) => (
+              <SelectItem key={conn.id} value={conn.id}>
                 <div className="flex items-center gap-2">
                   <div className="flex h-6 w-6 items-center justify-center rounded bg-primary/10 text-xs font-semibold text-primary">
-                    {cred.provider.slice(0, 1).toUpperCase()}
+                    {conn.provider.slice(0, 1).toUpperCase()}
                   </div>
-                  <span>{cred.name}</span>
+                  <span>{conn.name}</span>
                 </div>
               </SelectItem>
             ))}
@@ -147,7 +147,7 @@ export function AppSidebar({
             <span className="text-xs text-muted-foreground">{buckets.length}</span>
           </div>
 
-          {credentialsLoading || bucketsLoading ? (
+          {connectionsLoading || bucketsLoading ? (
             <div className="py-8 text-center text-sm text-muted-foreground">
               Loading...
             </div>

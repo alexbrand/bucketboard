@@ -15,7 +15,7 @@ import { Download, X } from 'lucide-react';
 interface FilePreviewProps {
   bucketName: string;
   objectKey: string;
-  credentialId: string;
+  connectionId: string;
   fileName: string;
   isOpen: boolean;
   onClose: () => void;
@@ -73,7 +73,7 @@ function getLanguageFromExtension(key: string): string {
 export function FilePreview({
   bucketName,
   objectKey,
-  credentialId,
+  connectionId,
   fileName,
   isOpen,
   onClose,
@@ -95,7 +95,7 @@ export function FilePreview({
     setImageUrl('');
     
     try {
-      const previewUrl = `/api/buckets/${bucketName}/preview?credentialId=${credentialId}&key=${encodeURIComponent(objectKey)}`;
+      const previewUrl = `/api/buckets/${bucketName}/preview?connectionId=${connectionId}&key=${encodeURIComponent(objectKey)}`;
       
       if (fileType === 'image') {
         // For images, just set the URL
@@ -122,7 +122,7 @@ export function FilePreview({
       setError(err instanceof Error ? err.message : 'Failed to load preview');
       setLoading(false);
     }
-  }, [bucketName, objectKey, credentialId, fileType, isOpen]);
+  }, [bucketName, objectKey, connectionId, fileType, isOpen]);
 
   // Load preview when modal opens
   useEffect(() => {
@@ -202,7 +202,7 @@ export function FilePreview({
           </Button>
           <Button asChild>
             <a
-              href={`/api/buckets/${bucketName}/download?credentialId=${credentialId}&key=${encodeURIComponent(objectKey)}`}
+              href={`/api/buckets/${bucketName}/download?connectionId=${connectionId}&key=${encodeURIComponent(objectKey)}`}
               className="inline-flex items-center"
             >
               <Download className="mr-2 h-4 w-4" />

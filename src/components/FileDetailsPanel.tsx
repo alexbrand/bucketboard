@@ -35,7 +35,7 @@ interface ObjectMetadata extends StorageObject {
 
 interface FileDetailsPanelProps {
   bucketName: string;
-  credentialId: string;
+  connectionId: string;
   selectedObject: StorageObject | null;
   onClose: () => void;
   onPreview?: (object: StorageObject) => void;
@@ -43,7 +43,7 @@ interface FileDetailsPanelProps {
 
 export function FileDetailsPanel({
   bucketName,
-  credentialId,
+  connectionId,
   selectedObject,
   onClose,
   onPreview,
@@ -67,7 +67,7 @@ export function FileDetailsPanel({
   const loadMetadata = async () => {
     if (!selectedObject || selectedObject.isFolder) return;
 
-    const metadataCacheKey = createCacheKey('metadata', bucketName, credentialId, selectedObject.key);
+    const metadataCacheKey = createCacheKey('metadata', bucketName, connectionId, selectedObject.key);
     const cached = cacheManager.get<ObjectMetadata>(metadataCacheKey, {
       ttl: DEFAULT_TTL.METADATA,
     });
@@ -79,7 +79,7 @@ export function FileDetailsPanel({
 
     try {
       const response = await fetch(
-        `/api/buckets/${bucketName}/metadata?credentialId=${credentialId}&key=${encodeURIComponent(selectedObject.key)}`
+        `/api/buckets/${bucketName}/metadata?connectionId=${connectionId}&key=${encodeURIComponent(selectedObject.key)}`
       );
       if (!response.ok) throw new Error('Failed to fetch metadata');
       const data = await response.json();
@@ -116,7 +116,7 @@ export function FileDetailsPanel({
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          credentialId,
+          connectionId: connectionId,
           key: selectedObject.key,
           metadata: editedMetadata,
           tags: editedTags,
@@ -127,7 +127,7 @@ export function FileDetailsPanel({
 
       if (response.ok) {
         setIsEditingMetadata(false);
-        const metadataCacheKey = createCacheKey('metadata', bucketName, credentialId, selectedObject.key);
+        const metadataCacheKey = createCacheKey('metadata', bucketName, connectionId, selectedObject.key);
         cacheManager.invalidate(metadataCacheKey, { ttl: DEFAULT_TTL.METADATA });
         cacheManager.invalidatePattern(/^analytics:.*/);
         await loadMetadata();
@@ -463,7 +463,7 @@ export function FileDetailsPanel({
               )}
               <Button asChild className="w-full">
                 <a
-                  href={`/api/buckets/${bucketName}/download?credentialId=${credentialId}&key=${encodeURIComponent(selectedObject.key)}`}
+                  href={`/api/buckets/${bucketName}/download?connectionId=${connectionId}&key=${encodeURIComponent(selectedObject.key)}`}
                   download
                 >
                   <Download className="mr-2 h-4 w-4" />

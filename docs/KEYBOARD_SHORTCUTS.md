@@ -11,7 +11,7 @@ These shortcuts work from anywhere in the application:
 | `H` | Navigate to Home page |
 | `B` | Navigate to Buckets page |
 | `A` | Navigate to Analytics page |
-| `C` | Navigate to Credentials page |
+| `C` | Navigate to Connections page |
 | `Shift + ?` | Show keyboard shortcuts help |
 
 ## Object Browser Shortcuts

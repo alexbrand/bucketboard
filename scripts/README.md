@@ -5,12 +5,12 @@ The `seed-bucket.ts` script allows you to quickly populate buckets/containers wi
 ## Usage
 
 ```bash
-pnpm seed <credentialId> <bucketName> [options]
+pnpm seed <connectionId> <bucketName> [options]
 ```
 
 ### Arguments
 
-- `credentialId` - The ID of the credential from your `data/credentials.yaml` file
+- `connectionId` - The ID of the connection from your `data/connections.yaml` file
 - `bucketName` - The name of the bucket/container to seed
 
 ### Options
@@ -75,5 +75,5 @@ The script uploads files in batches of 10 for optimal performance. Progress is d
 
 - The script will automatically create the bucket/container if it doesn't exist
 - Files are uploaded in parallel batches for better performance
-- The script uses the same credential system as the main application
+- The script uses the same connection system as the main application
 - Works with all three providers: AWS S3 (LocalStack), Azure Blob (Azurite), and GCP Storage (fake-gcs-server)

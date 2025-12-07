@@ -1,26 +1,26 @@
 import { Storage, Bucket as GCPBucket } from '@google-cloud/storage';
 import { StorageProvider } from '../interface';
 import { Bucket, ListObjectsParams, ListObjectsResponse, StorageObject, UpdateMetadataParams } from '../../types/storage';
-import { GCPStorageCredentials } from '../../types/credentials';
+import { GCPStorageConnection } from '../../types/connections';
 
 export class GCPStorageProvider implements StorageProvider {
   private client: Storage;
   private projectId: string;
 
-  constructor(credentials: GCPStorageCredentials) {
-    this.projectId = credentials.config.projectId;
+  constructor(connection: GCPStorageConnection) {
+    this.projectId = connection.config.projectId;
 
     const storageConfig: any = {
-      projectId: credentials.config.projectId,
+      projectId: connection.config.projectId,
       credentials: {
-        client_email: credentials.config.clientEmail,
-        private_key: credentials.config.privateKey,
+        client_email: connection.config.clientEmail,
+        private_key: connection.config.privateKey,
       },
     };
 
     // Use custom endpoint if provided (for fake-gcs-server)
-    if (credentials.config.apiEndpoint) {
-      storageConfig.apiEndpoint = credentials.config.apiEndpoint;
+    if (connection.config.apiEndpoint) {
+      storageConfig.apiEndpoint = connection.config.apiEndpoint;
     }
 
     this.client = new Storage(storageConfig);

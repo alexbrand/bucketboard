@@ -13,28 +13,28 @@ import {
 } from '@aws-sdk/client-s3';
 import { StorageProvider } from '../interface';
 import { Bucket, ListObjectsParams, ListObjectsResponse, StorageObject, UpdateMetadataParams } from '../../types/storage';
-import { AWSS3Credentials } from '../../types/credentials';
+import { AWSS3Connection } from '../../types/connections';
 
 export class AWSS3Provider implements StorageProvider {
   private client: S3Client;
   private endpoint?: string;
   private region: string;
 
-  constructor(credentials: AWSS3Credentials) {
-    this.region = credentials.config.region;
-    this.endpoint = credentials.config.endpoint;
+  constructor(connection: AWSS3Connection) {
+    this.region = connection.config.region;
+    this.endpoint = connection.config.endpoint;
 
     const config: any = {
-      region: credentials.config.region,
+      region: connection.config.region,
       credentials: {
-        accessKeyId: credentials.config.accessKeyId,
-        secretAccessKey: credentials.config.secretAccessKey,
+        accessKeyId: connection.config.accessKeyId,
+        secretAccessKey: connection.config.secretAccessKey,
       },
     };
 
     // Add custom endpoint for S3-compatible services
-    if (credentials.config.endpoint) {
-      config.endpoint = credentials.config.endpoint;
+    if (connection.config.endpoint) {
+      config.endpoint = connection.config.endpoint;
       // Force path-style URLs for S3-compatible services (required for MinIO, etc.)
       config.forcePathStyle = true;
     }

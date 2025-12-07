@@ -118,7 +118,7 @@ export default function BucketsPage() {
     objectsCacheKey,
     async () => {
       const params = new URLSearchParams({
-        credentialId: selectedCredentialId,
+        connectionId: selectedCredentialId,
         prefix: currentPrefix,
         delimiter: '/',
       });
@@ -142,7 +142,7 @@ export default function BucketsPage() {
         cacheKey,
         async () => {
           const params = new URLSearchParams({
-            credentialId: selectedCredentialId,
+            connectionId: selectedCredentialId,
             prefix: folderKey,
             delimiter: '/',
           });
@@ -164,7 +164,7 @@ export default function BucketsPage() {
           cacheKey,
           async () => {
             const response = await fetch(
-              `/api/buckets/${selectedBucket}/metadata?credentialId=${selectedCredentialId}&key=${encodeURIComponent(object.key)}`
+              `/api/buckets/${selectedBucket}/metadata?connectionId=${selectedCredentialId}&key=${encodeURIComponent(object.key)}`
             );
             if (!response.ok) throw new Error('Failed to prefetch metadata');
             return response.json();
@@ -201,7 +201,7 @@ export default function BucketsPage() {
       formData.append('key', folderKey);
 
       const response = await fetch(
-        `/api/buckets/${selectedBucket}/objects?credentialId=${selectedCredentialId}`,
+            `/api/buckets/${selectedBucket}/objects?connectionId=${selectedCredentialId}`,
         {
           method: 'POST',
           body: formData,
@@ -336,7 +336,7 @@ export default function BucketsPage() {
 
           xhr.open(
             'POST',
-            `/api/buckets/${selectedBucket}/objects?credentialId=${selectedCredentialId}`
+            `/api/buckets/${selectedBucket}/objects?connectionId=${selectedCredentialId}`
           );
           xhr.send(formData);
         });
@@ -391,7 +391,7 @@ export default function BucketsPage() {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          credentialId: selectedCredentialId,
+          connectionId: selectedCredentialId,
           keys: Array.from(selectedFiles),
         }),
       });
@@ -466,7 +466,7 @@ export default function BucketsPage() {
         );
 
         const response = await fetch(
-          `/api/buckets/${selectedBucket}/download?credentialId=${selectedCredentialId}&key=${encodeURIComponent(key)}`,
+          `/api/buckets/${selectedBucket}/download?connectionId=${selectedCredentialId}&key=${encodeURIComponent(key)}`,
           { signal: abortController.signal }
         );
 
@@ -1157,7 +1157,7 @@ export default function BucketsPage() {
       {selectedObject && selectedBucket && selectedCredentialId && (
         <FileDetailsPanel
           bucketName={selectedBucket}
-          credentialId={selectedCredentialId}
+          connectionId={selectedCredentialId}
           selectedObject={selectedObject}
           onClose={() => setSelectedObject(null)}
           onPreview={(obj) => setPreviewFile(obj)}
@@ -1169,7 +1169,7 @@ export default function BucketsPage() {
         <FilePreview
           bucketName={selectedBucket}
           objectKey={previewFile.key}
-          credentialId={selectedCredentialId}
+          connectionId={selectedCredentialId}
           fileName={previewFile.key.split('/').filter(Boolean).pop() || 'file'}
           isOpen={!!previewFile}
           onClose={() => setPreviewFile(null)}

@@ -25,7 +25,7 @@ The keyboard shortcuts system provides comprehensive keyboard navigation and sho
 3. **`src/components/GlobalKeyboardShortcuts.tsx`**
    - Manages application-wide navigation shortcuts
    - Floating help button in bottom-right corner
-   - Shortcuts for navigating to Home, Buckets, Analytics, Credentials
+   - Shortcuts for navigating to Home, Buckets, Analytics, Connections
 
 4. **`src/components/LayoutContent.tsx`**
    - Client component wrapper for the layout
@@ -57,7 +57,7 @@ The keyboard shortcuts system provides comprehensive keyboard navigation and sho
 - `H` - Go to Home
 - `B` - Go to Buckets  
 - `A` - Go to Analytics
-- `C` - Go to Credentials
+- `C` - Go to Connections
 - `Shift + ?` - Show keyboard shortcuts help
 
 ### Object Browser (Buckets Page)

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { SimpleSidebar } from '@/components/SimpleSidebar';
-import { StorageProvider } from '@/lib/types/credentials';
+import { StorageProvider } from '@/lib/types/connections';
 import { useCachedFetch, createCacheKey, DEFAULT_TTL } from '@/lib/utils/use-cached-fetch';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/select';
 import { Loader2, Package, Database, FileText, Image, Box } from 'lucide-react';
 
-interface Credential {
+interface Connection {
   id: string;
   name: string;
   provider: StorageProvider;
@@ -41,38 +41,38 @@ interface AnalyticsData {
   buckets: BucketAnalytics[];
 }
 
-interface CredentialsResponse {
-  credentials: Credential[];
+interface ConnectionsResponse {
+  connections: Connection[];
 }
 
 export default function AnalyticsPage() {
   const [selectedCredentialId, setSelectedCredentialId] = useState<string>('');
 
-  // Fetch credentials with caching
+  // Fetch connections with caching
   const {
-    data: credentialsData,
-    loading: credentialsLoading,
-  } = useCachedFetch<CredentialsResponse>(
-    'credentials',
+    data: connectionsData,
+    loading: connectionsLoading,
+  } = useCachedFetch<ConnectionsResponse>(
+    'connections',
     async () => {
-      const response = await fetch('/api/credentials');
-      if (!response.ok) throw new Error('Failed to fetch credentials');
+      const response = await fetch('/api/connections');
+      if (!response.ok) throw new Error('Failed to fetch connections');
       return response.json();
     },
     {
-      ttl: DEFAULT_TTL.CREDENTIALS,
+      ttl: DEFAULT_TTL.CONNECTIONS,
       useLocalStorage: true,
     }
   );
 
-  const credentials = credentialsData?.credentials || [];
+  const connections = connectionsData?.connections || [];
 
-  // Auto-select first credential when credentials load
+  // Auto-select first connection when connections load
   useEffect(() => {
-    if (credentials.length > 0 && !selectedCredentialId) {
-      setSelectedCredentialId(credentials[0].id);
+    if (connections.length > 0 && !selectedCredentialId) {
+      setSelectedCredentialId(connections[0].id);
     }
-  }, [credentials, selectedCredentialId]);
+  }, [connections, selectedCredentialId]);
 
   // Fetch analytics with caching
   const {
@@ -81,8 +81,8 @@ export default function AnalyticsPage() {
   } = useCachedFetch<AnalyticsData>(
     createCacheKey('analytics', selectedCredentialId),
     async () => {
-      if (!selectedCredentialId) throw new Error('No credential selected');
-      const response = await fetch(`/api/analytics?credentialId=${selectedCredentialId}`);
+      if (!selectedCredentialId) throw new Error('No connection selected');
+      const response = await fetch(`/api/analytics?connectionId=${selectedCredentialId}`);
       if (!response.ok) throw new Error('Failed to fetch analytics');
       return response.json();
     },
@@ -114,33 +114,33 @@ export default function AnalyticsPage() {
     return colors[index % colors.length];
   };
 
-  if (credentialsLoading) {
+  if (connectionsLoading) {
     return (
       <div id="analytics-page" className="flex overflow-hidden" style={{ height: '100vh' }}>
         <SimpleSidebar />
         <div id="main-content" className="flex flex-1 items-center justify-center">
           <div className="text-center">
             <Loader2 className="mx-auto h-8 w-8 animate-spin text-primary" />
-            <p className="mt-2 text-muted-foreground">Loading credentials...</p>
+            <p className="mt-2 text-muted-foreground">Loading connections...</p>
           </div>
         </div>
       </div>
     );
   }
 
-  if (credentials.length === 0) {
+  if (connections.length === 0) {
     return (
       <div id="analytics-page" className="flex overflow-hidden" style={{ height: '100vh' }}>
         <SimpleSidebar />
         <div id="main-content" className="flex flex-1 items-center justify-center p-8">
           <div className="text-center">
-            <h2 className="text-2xl font-bold">No credentials found</h2>
+            <h2 className="text-2xl font-bold">No connections found</h2>
             <p className="mt-2 text-muted-foreground">
-              Please add a credential first to view analytics.
+              Please add a connection first to view analytics.
             </p>
             <div className="mt-6">
               <Button asChild>
-                <a href="/credentials">Add Credential</a>
+                <a href="/connections">Add Connection</a>
               </Button>
             </div>
           </div>
@@ -163,12 +163,12 @@ export default function AnalyticsPage() {
         <div className="mt-4 sm:ml-16 sm:mt-0">
           <Select value={selectedCredentialId} onValueChange={setSelectedCredentialId}>
             <SelectTrigger className="w-[200px]">
-              <SelectValue placeholder="Select credential" />
+              <SelectValue placeholder="Select connection" />
             </SelectTrigger>
             <SelectContent>
-              {credentials.map((cred) => (
-                <SelectItem key={cred.id} value={cred.id}>
-                  {cred.name}
+              {connections.map((conn) => (
+                <SelectItem key={conn.id} value={conn.id}>
+                  {conn.name}
                 </SelectItem>
               ))}
             </SelectContent>

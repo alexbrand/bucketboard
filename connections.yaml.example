@@ -1,5 +1,5 @@
 version: '1.0'
-credentials:
+connections:
   # AWS S3 (LocalStack) Example
   localstack-s3:
     id: localstack-s3

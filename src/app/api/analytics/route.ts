@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createStorageProvider } from '@/lib/storage/provider-factory';
-import { credentialManager } from '@/lib/storage/credential-store';
+import { connectionManager } from '@/lib/storage/connection-store';
 
 interface BucketAnalytics {
   name: string;
@@ -14,20 +14,20 @@ interface BucketAnalytics {
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
-    const credentialId = searchParams.get('credentialId');
+    const connectionId = searchParams.get('connectionId');
 
-    if (!credentialId) {
-      return NextResponse.json({ error: 'Credential ID is required' }, { status: 400 });
+    if (!connectionId) {
+      return NextResponse.json({ error: 'Connection ID is required' }, { status: 400 });
     }
 
-    // Get the credential
-    const credential = credentialManager.getCredential(credentialId);
-    if (!credential) {
-      return NextResponse.json({ error: 'Credential not found' }, { status: 404 });
+    // Get the connection
+    const connection = connectionManager.getConnection(connectionId);
+    if (!connection) {
+      return NextResponse.json({ error: 'Connection not found' }, { status: 404 });
     }
 
     // Get the storage provider
-    const provider = await createStorageProvider(credential);
+    const provider = await createStorageProvider(connection);
 
     // Get all buckets
     const buckets = await provider.listBuckets();

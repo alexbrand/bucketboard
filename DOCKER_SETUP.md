@@ -54,23 +54,24 @@ Copy `.env.example` to `.env` and customize as needed:
 cp .env.example .env
 ```
 
-The `.env` file contains default credentials for each emulator that you can use in your `data/credentials.yaml` file.
+The `.env` file contains default credentials for each emulator that you can use in your `data/connections.yaml` file.
 
-### Credentials Configuration
+### Connections Configuration
 
-You can use `credentials.yaml.example` as a template. Copy it to `data/credentials.yaml` and customize as needed:
+You can use `connections.yaml.example` as a template. Copy it to `data/connections.yaml` and customize as needed:
 
 ```bash
 mkdir -p data
-cp credentials.yaml.example data/credentials.yaml
+cp connections.yaml.example data/connections.yaml
 ```
 
-Or add credentials manually to your `data/credentials.yaml` file using the following templates:
+
+Or add connections manually to your `data/connections.yaml` file using the following templates:
 
 #### AWS S3 (LocalStack)
 
 ```yaml
-credentials:
+connections:
   localstack-s3:
     id: localstack-s3
     provider: aws-s3
@@ -87,7 +88,7 @@ credentials:
 #### Azure Blob Storage (Azurite)
 
 ```yaml
-credentials:
+connections:
   azurite-blob:
     id: azurite-blob
     provider: azure-blob
@@ -103,7 +104,7 @@ credentials:
 #### Google Cloud Storage (fake-gcs-server)
 
 ```yaml
-credentials:
+connections:
   fake-gcs:
     id: fake-gcs
     provider: gcp-storage
@@ -180,20 +181,20 @@ curl -X POST "http://localhost:4443/storage/v1/b?project=test-project" \
 
 - **Endpoint:** `http://localhost:4566`
 - **Region:** Any region works (e.g., `us-east-1`)
-- **Credentials:** Any values work (e.g., `test`/`test`)
+- **Connection Details:** Any values work (e.g., `test`/`test`)
 - **Path-style URLs:** Required (already configured in the provider)
 
 ### Azure Blob Storage (Azurite)
 
 - **Account Name:** `devstoreaccount1` (default development account)
 - **Account Key:** `Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==`
-- **Endpoint:** `http://localhost:10000/devstoreaccount1` (must be set in credentials config)
+- **Endpoint:** `http://localhost:10000/devstoreaccount1` (must be set in connection config)
 
 ### Google Cloud Storage (fake-gcs-server)
 
-- **API Endpoint:** `http://localhost:4443` (must be set in credentials config as `apiEndpoint`)
+- **API Endpoint:** `http://localhost:4443` (must be set in connection config as `apiEndpoint`)
 - **Project ID:** Any value works (e.g., `test-project`)
-- **Credentials:** The emulator doesn't validate credentials, but the SDK requires a valid JSON structure with `client_email` and `private_key` fields
+- **Connection Details:** The emulator doesn't validate credentials, but the SDK requires a valid JSON structure with `client_email` and `private_key` fields
 
 ## Troubleshooting
 

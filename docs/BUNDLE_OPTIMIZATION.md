@@ -21,10 +21,10 @@ import { AzureBlobProvider } from './providers/azure-blob';
 import { GCPStorageProvider } from './providers/gcp-storage';
 
 // After: Lazy loaded on demand
-export async function createStorageProvider(credentials: Credentials): Promise<StorageProvider> {
+export async function createStorageProvider(connection: Connection): Promise<StorageProvider> {
   if (provider === 'aws-s3') {
     const { AWSS3Provider } = await import('./providers/aws-s3');
-    return new AWSS3Provider(credentials);
+    return new AWSS3Provider(connection);
   }
   // Similar for other providers...
 }
@@ -40,7 +40,7 @@ export async function createStorageProvider(credentials: Credentials): Promise<S
 **Components Optimized**:
 - `ProgressTracker` - File upload/download progress component
 - `VirtualizedObjectList` - Large list rendering component
-- `CredentialForm` - Form component with provider-specific fields
+- `ConnectionForm` - Form component with provider-specific fields
 
 **Implementation**:
 ```typescript
@@ -103,7 +103,7 @@ experimental: {
 ### Files Modified:
 1. `src/lib/storage/provider-factory.ts` - Dynamic imports for SDKs
 2. `src/app/buckets/page.tsx` - Lazy load ProgressTracker & VirtualizedObjectList
-3. `src/app/credentials/page.tsx` - Lazy load CredentialForm
+3. `src/app/connections/page.tsx` - Lazy load ConnectionForm
 4. `next.config.ts` - Turbopack config and optimizations
 5. All API routes - Updated to handle async `createStorageProvider()`
 
@@ -113,7 +113,7 @@ experimental: {
 - `/api/buckets/[bucket]/download/route.ts`
 - `/api/buckets/[bucket]/metadata/route.ts`
 - `/api/buckets/[bucket]/metadata/update/route.ts`
-- `/api/credentials/test/route.ts`
+- `/api/connections/test/route.ts`
 - `/api/analytics/route.ts`
 
 ## Testing

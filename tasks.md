@@ -14,12 +14,12 @@
 - [x] Set up API routes structure for backend operations
 - [x] Configure ESLint and Prettier
 
-### Authentication & Credentials
+### Authentication & Connections
 
-- [x] Design credential storage schema (server-side with file-based YAML storage)
-- [x] Build credential management API endpoints (GET, POST, PUT, DELETE)
-- [x] Create credential input/configuration UI with forms for AWS S3, Azure Blob, and GCP Storage
-- [x] Add multi-provider credential switching (dropdown with provider-specific forms)
+- [x] Design connection storage schema (server-side with file-based YAML storage)
+- [x] Build connection management API endpoints (GET, POST, PUT, DELETE)
+- [x] Create connection input/configuration UI with forms for AWS S3, Azure Blob, and GCP Storage
+- [x] Add multi-provider connection switching (dropdown with provider-specific forms)
 - [x] Support injection of secrets into the configuration file via environment variables (${VAR_NAME} and ${VAR_NAME:-default} syntax)
 
 ### Core CRUD Operations

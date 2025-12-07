@@ -3,7 +3,7 @@ export type StorageProvider =
   | 'azure-blob'
   | 'gcp-storage';
 
-export interface CredentialBase {
+export interface ConnectionBase {
   id: string;
   name: string;
   provider: StorageProvider;
@@ -11,7 +11,7 @@ export interface CredentialBase {
   updatedAt: string;
 }
 
-export interface AWSS3Credentials extends CredentialBase {
+export interface AWSS3Connection extends ConnectionBase {
   provider: 'aws-s3';
   config: {
     accessKeyId: string;
@@ -21,7 +21,7 @@ export interface AWSS3Credentials extends CredentialBase {
   };
 }
 
-export interface AzureBlobCredentials extends CredentialBase {
+export interface AzureBlobConnection extends ConnectionBase {
   provider: 'azure-blob';
   config: {
     accountName: string;
@@ -30,7 +30,7 @@ export interface AzureBlobCredentials extends CredentialBase {
   };
 }
 
-export interface GCPStorageCredentials extends CredentialBase {
+export interface GCPStorageConnection extends ConnectionBase {
   provider: 'gcp-storage';
   config: {
     projectId: string;
@@ -40,7 +40,9 @@ export interface GCPStorageCredentials extends CredentialBase {
   };
 }
 
-export type Credentials =
-  | AWSS3Credentials
-  | AzureBlobCredentials
-  | GCPStorageCredentials;
+export type Connection =
+  | AWSS3Connection
+  | AzureBlobConnection
+  | GCPStorageConnection;
+
+export type { StorageProvider };

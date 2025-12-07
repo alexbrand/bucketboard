@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { credentialManager } from '@/lib/storage/credential-store';
+import { connectionManager } from '@/lib/storage/connection-store';
 import { createStorageProvider } from '@/lib/storage/provider-factory';
 
 type RouteContext = {
@@ -10,25 +10,25 @@ export async function GET(request: NextRequest, context: RouteContext) {
   const { bucket } = await context.params;
   const searchParams = request.nextUrl.searchParams;
   const prefix = searchParams.get('prefix') || '';
-  const credentialId = searchParams.get('credentialId');
+  const connectionId = searchParams.get('connectionId');
   const delimiter = searchParams.get('delimiter') || '/';
   const maxKeys = searchParams.get('maxKeys');
   const continuationToken = searchParams.get('continuationToken') || undefined;
 
-  if (!credentialId) {
-    return NextResponse.json({ error: 'credentialId is required' }, { status: 400 });
+  if (!connectionId) {
+    return NextResponse.json({ error: 'connectionId is required' }, { status: 400 });
   }
 
   try {
-    // Get the credential
-    const credential = credentialManager.getCredential(credentialId);
+    // Get the connection
+    const connection = connectionManager.getConnection(connectionId);
 
-    if (!credential) {
-      return NextResponse.json({ error: 'Credential not found' }, { status: 404 });
+    if (!connection) {
+      return NextResponse.json({ error: 'Connection not found' }, { status: 404 });
     }
 
     // Create storage provider
-    const provider = await createStorageProvider(credential);
+    const provider = await createStorageProvider(connection);
 
     // List objects
     const result = await provider.listObjects({
@@ -54,10 +54,10 @@ export async function GET(request: NextRequest, context: RouteContext) {
 export async function POST(request: NextRequest, context: RouteContext) {
   const { bucket } = await context.params;
   const searchParams = request.nextUrl.searchParams;
-  const credentialId = searchParams.get('credentialId');
+  const connectionId = searchParams.get('connectionId');
 
-  if (!credentialId) {
-    return NextResponse.json({ error: 'credentialId is required' }, { status: 400 });
+  if (!connectionId) {
+    return NextResponse.json({ error: 'connectionId is required' }, { status: 400 });
   }
 
   try {
@@ -69,15 +69,15 @@ export async function POST(request: NextRequest, context: RouteContext) {
       return NextResponse.json({ error: 'file and key are required' }, { status: 400 });
     }
 
-    // Get the credential
-    const credential = credentialManager.getCredential(credentialId);
+    // Get the connection
+    const connection = connectionManager.getConnection(connectionId);
 
-    if (!credential) {
-      return NextResponse.json({ error: 'Credential not found' }, { status: 404 });
+    if (!connection) {
+      return NextResponse.json({ error: 'Connection not found' }, { status: 404 });
     }
 
     // Create storage provider
-    const provider = await createStorageProvider(credential);
+    const provider = await createStorageProvider(connection);
 
     // Convert file to buffer
     const arrayBuffer = await file.arrayBuffer();
@@ -104,10 +104,10 @@ export async function POST(request: NextRequest, context: RouteContext) {
 export async function DELETE(request: NextRequest, context: RouteContext) {
   const { bucket } = await context.params;
   const body = await request.json();
-  const { keys, credentialId } = body;
+  const { keys, connectionId } = body;
 
-  if (!credentialId) {
-    return NextResponse.json({ error: 'credentialId is required' }, { status: 400 });
+  if (!connectionId) {
+    return NextResponse.json({ error: 'connectionId is required' }, { status: 400 });
   }
 
   if (!keys || !Array.isArray(keys) || keys.length === 0) {
@@ -115,15 +115,15 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
   }
 
   try {
-    // Get the credential
-    const credential = credentialManager.getCredential(credentialId);
+    // Get the connection
+    const connection = connectionManager.getConnection(connectionId);
 
-    if (!credential) {
-      return NextResponse.json({ error: 'Credential not found' }, { status: 404 });
+    if (!connection) {
+      return NextResponse.json({ error: 'Connection not found' }, { status: 404 });
     }
 
     // Create storage provider
-    const provider = await createStorageProvider(credential);
+    const provider = await createStorageProvider(connection);
 
     // Delete objects
     await provider.deleteObjects(bucket, keys);

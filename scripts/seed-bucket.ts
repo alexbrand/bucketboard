@@ -5,7 +5,7 @@
  * Seeds a bucket/container with N test files for local testing.
  * 
  * Usage:
- *   pnpm seed <credentialId> <bucketName> [options]
+ *   pnpm seed <connectionId> <bucketName> [options]
  * 
  * Options:
  *   --count, -c    Number of files to create (default: 100)
@@ -14,12 +14,12 @@
  *   --folders, -f  Include folder objects (default: true)
  */
 
-import { credentialManager } from '../src/lib/storage/credential-store';
+import { connectionManager } from '../src/lib/storage/connection-store';
 import { createStorageProvider } from '../src/lib/storage/provider-factory';
 import { S3Client, CreateBucketCommand } from '@aws-sdk/client-s3';
 import { BlobServiceClient, StorageSharedKeyCredential } from '@azure/storage-blob';
 import { Storage } from '@google-cloud/storage';
-import { Credentials, AWSS3Credentials, AzureBlobCredentials, GCPStorageCredentials } from '../src/lib/types/credentials';
+import { Connection, AWSS3Connection, AzureBlobConnection, GCPStorageConnection } from '../src/lib/types/connections';
 
 interface SeedOptions {
   count: number;
@@ -48,7 +48,7 @@ const CONTENT_TYPES: Record<string, string> = {
  */
 async function ensureBucketExists(
   provider: any,
-  credentials: Credentials,
+  connection: Connection,
   bucketName: string
 ): Promise<void> {
   try {
@@ -62,47 +62,47 @@ async function ensureBucketExists(
 
     console.log(`Creating bucket "${bucketName}"...`);
 
-    if (credentials.provider === 'aws-s3') {
-      const creds = credentials as AWSS3Credentials;
+    if (connection.provider === 'aws-s3') {
+      const conn = connection as AWSS3Connection;
       const config: any = {
-        region: creds.config.region,
+        region: conn.config.region,
         credentials: {
-          accessKeyId: creds.config.accessKeyId,
-          secretAccessKey: creds.config.secretAccessKey,
+          accessKeyId: conn.config.accessKeyId,
+          secretAccessKey: conn.config.secretAccessKey,
         },
       };
-      if (creds.config.endpoint) {
-        config.endpoint = creds.config.endpoint;
+      if (conn.config.endpoint) {
+        config.endpoint = conn.config.endpoint;
         config.forcePathStyle = true;
       }
       const client = new S3Client(config);
       const command = new CreateBucketCommand({ Bucket: bucketName });
       await client.send(command);
       console.log(`✓ Created S3 bucket "${bucketName}"`);
-    } else if (credentials.provider === 'azure-blob') {
-      const creds = credentials as AzureBlobCredentials;
+    } else if (connection.provider === 'azure-blob') {
+      const conn = connection as AzureBlobConnection;
       const sharedKeyCredential = new StorageSharedKeyCredential(
-        creds.config.accountName,
-        creds.config.accountKey
+        conn.config.accountName,
+        conn.config.accountKey
       );
-      const endpoint = creds.config.endpoint 
-        ? creds.config.endpoint
-        : `https://${creds.config.accountName}.blob.core.windows.net`;
+      const endpoint = conn.config.endpoint 
+        ? conn.config.endpoint
+        : `https://${conn.config.accountName}.blob.core.windows.net`;
       const client = new BlobServiceClient(endpoint, sharedKeyCredential);
       const containerClient = client.getContainerClient(bucketName);
       await containerClient.create();
       console.log(`✓ Created Azure container "${bucketName}"`);
-    } else if (credentials.provider === 'gcp-storage') {
-      const creds = credentials as GCPStorageCredentials;
+    } else if (connection.provider === 'gcp-storage') {
+      const conn = connection as GCPStorageConnection;
       const storageConfig: any = {
-        projectId: creds.config.projectId,
+        projectId: conn.config.projectId,
         credentials: {
-          client_email: creds.config.clientEmail,
-          private_key: creds.config.privateKey,
+          client_email: conn.config.clientEmail,
+          private_key: conn.config.privateKey,
         },
       };
-      if (creds.config.apiEndpoint) {
-        storageConfig.apiEndpoint = creds.config.apiEndpoint;
+      if (conn.config.apiEndpoint) {
+        storageConfig.apiEndpoint = conn.config.apiEndpoint;
       }
       const client = new Storage(storageConfig);
       await client.createBucket(bucketName);
@@ -156,27 +156,27 @@ function getContentType(key: string): string {
  * Seeds a bucket with test files
  */
 async function seedBucket(
-  credentialId: string,
+  connectionId: string,
   bucketName: string,
   options: SeedOptions
 ): Promise<void> {
   console.log('\n🌱 Bucket Seeding Script');
   console.log('========================\n');
 
-  // Get credential
-  const credential = credentialManager.getCredential(credentialId);
-  if (!credential) {
-    throw new Error(`Credential "${credentialId}" not found`);
+  // Get connection
+  const connection = connectionManager.getConnection(connectionId);
+  if (!connection) {
+    throw new Error(`Connection "${connectionId}" not found`);
   }
 
-  console.log(`Provider: ${credential.provider}`);
+  console.log(`Provider: ${connection.provider}`);
   console.log(`Bucket: ${bucketName}`);
   console.log(`Files to create: ${options.count}`);
   console.log(`Prefix: ${options.prefix || '(none)'}`);
   console.log(`Include folders: ${options.includeFolders}\n`);
 
   // Create provider
-  const provider = await createStorageProvider(credential);
+  const provider = await createStorageProvider(connection);
 
   // Test connection
   console.log('Testing connection...');
@@ -187,7 +187,7 @@ async function seedBucket(
   console.log(`✓ ${connectionTest.message}\n`);
 
   // Ensure bucket exists
-  await ensureBucketExists(provider, credential, bucketName);
+  await ensureBucketExists(provider, connection, bucketName);
 
   // Generate and upload files
   console.log(`\nUploading ${options.count} files...`);
@@ -244,11 +244,11 @@ async function seedBucket(
 }
 
 // CLI parsing
-function parseArgs(): { credentialId: string; bucketName: string; options: SeedOptions } {
+function parseArgs(): { connectionId: string; bucketName: string; options: SeedOptions } {
   const args = process.argv.slice(2);
 
   if (args.length < 2) {
-    console.error('Usage: pnpm seed <credentialId> <bucketName> [options]');
+    console.error('Usage: pnpm seed <connectionId> <bucketName> [options]');
     console.error('\nOptions:');
     console.error('  --count, -c <number>    Number of files to create (default: 100)');
     console.error('  --prefix, -p <string>   Prefix for file keys (default: "")');
@@ -257,7 +257,7 @@ function parseArgs(): { credentialId: string; bucketName: string; options: SeedO
     process.exit(1);
   }
 
-  const credentialId = args[0];
+  const connectionId = args[0];
   const bucketName = args[1];
 
   const options: SeedOptions = {
@@ -295,14 +295,14 @@ function parseArgs(): { credentialId: string; bucketName: string; options: SeedO
     }
   }
 
-  return { credentialId, bucketName, options };
+  return { connectionId, bucketName, options };
 }
 
 // Main execution
 async function main() {
   try {
-    const { credentialId, bucketName, options } = parseArgs();
-    await seedBucket(credentialId, bucketName, options);
+    const { connectionId, bucketName, options } = parseArgs();
+    await seedBucket(connectionId, bucketName, options);
   } catch (error) {
     console.error('\n❌ Error:', error instanceof Error ? error.message : error);
     process.exit(1);

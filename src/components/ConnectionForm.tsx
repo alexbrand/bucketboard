@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { StorageProvider } from '@/lib/types/credentials';
+import { StorageProvider } from '@/lib/types/connections';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -16,12 +16,12 @@ import {
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { CheckCircle2, XCircle } from 'lucide-react';
 
-interface CredentialFormProps {
+interface ConnectionFormProps {
   onSuccess: () => void;
   onCancel: () => void;
 }
 
-export function CredentialForm({ onSuccess, onCancel }: CredentialFormProps) {
+export function ConnectionForm({ onSuccess, onCancel }: ConnectionFormProps) {
   const [provider, setProvider] = useState<StorageProvider>('aws-s3');
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
@@ -74,7 +74,7 @@ export function CredentialForm({ onSuccess, onCancel }: CredentialFormProps) {
         };
       }
 
-      const response = await fetch('/api/credentials/test', {
+      const response = await fetch('/api/connections/test', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -91,7 +91,7 @@ export function CredentialForm({ onSuccess, onCancel }: CredentialFormProps) {
       console.error('Error testing connection:', error);
       setTestResult({
         success: false,
-        message: 'Failed to test connection. Please check your credentials and try again.',
+        message: 'Failed to test connection. Please check your connection details and try again.',
       });
     } finally {
       setTestLoading(false);
@@ -129,7 +129,7 @@ export function CredentialForm({ onSuccess, onCancel }: CredentialFormProps) {
         };
       }
 
-      const response = await fetch('/api/credentials', {
+      const response = await fetch('/api/connections', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -149,8 +149,8 @@ export function CredentialForm({ onSuccess, onCancel }: CredentialFormProps) {
         alert(`Error: ${error.error}`);
       }
     } catch (error) {
-      console.error('Error creating credential:', error);
-      alert('Failed to create credential');
+      console.error('Error creating connection:', error);
+      alert('Failed to create connection');
     } finally {
       setLoading(false);
     }
@@ -159,13 +159,13 @@ export function CredentialForm({ onSuccess, onCancel }: CredentialFormProps) {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="space-y-2">
-        <Label htmlFor="name">Credential Name</Label>
+        <Label htmlFor="name">Connection Name</Label>
         <Input
           id="name"
           value={name}
           onChange={(e) => setName(e.target.value)}
           required
-          placeholder="My AWS Credentials"
+          placeholder="My AWS Connection"
         />
       </div>
 
@@ -316,7 +316,7 @@ export function CredentialForm({ onSuccess, onCancel }: CredentialFormProps) {
             Cancel
           </Button>
           <Button type="submit" disabled={loading}>
-            {loading ? 'Creating...' : 'Create Credential'}
+            {loading ? 'Creating...' : 'Create Connection'}
           </Button>
         </div>
       </div>

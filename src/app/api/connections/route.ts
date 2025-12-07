@@ -1,26 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { credentialManager } from '@/lib/storage/credential-store';
-import { Credentials } from '@/lib/types/credentials';
+import { connectionManager } from '@/lib/storage/connection-store';
+import { Connection } from '@/lib/types/connections';
 
 export async function GET() {
   try {
-    const credentials = credentialManager.listCredentials();
+    const connections = connectionManager.listConnections();
 
     // Remove sensitive config data from response
-    const sanitized = credentials.map((cred) => ({
-      id: cred.id,
-      name: cred.name,
-      provider: cred.provider,
-      createdAt: cred.createdAt,
-      updatedAt: cred.updatedAt,
+    const sanitized = connections.map((conn) => ({
+      id: conn.id,
+      name: conn.name,
+      provider: conn.provider,
+      createdAt: conn.createdAt,
+      updatedAt: conn.updatedAt,
     }));
 
     return NextResponse.json({
-      credentials: sanitized,
+      connections: sanitized,
     });
   } catch (error) {
-    console.error('Error listing credentials:', error);
-    return NextResponse.json({ error: 'Failed to list credentials' }, { status: 500 });
+    console.error('Error listing connections:', error);
+    return NextResponse.json({ error: 'Failed to list connections' }, { status: 500 });
   }
 }
 
@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const credential: Credentials = {
+    const connection: Connection = {
       id: body.id,
       name: body.name,
       provider: body.provider,
@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
       updatedAt: new Date().toISOString(),
     };
 
-    const created = credentialManager.createCredential(credential);
+    const created = connectionManager.createConnection(connection);
 
     // Remove sensitive config from response
     const sanitized = {
@@ -58,14 +58,14 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(
       {
-        message: 'Credential created successfully',
-        credential: sanitized,
+        message: 'Connection created successfully',
+        connection: sanitized,
       },
       { status: 201 }
     );
   } catch (error) {
-    console.error('Error creating credential:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Failed to create credential';
+    console.error('Error creating connection:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Failed to create connection';
     return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }

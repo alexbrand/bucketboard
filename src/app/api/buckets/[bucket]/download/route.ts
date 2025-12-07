@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { credentialManager } from '@/lib/storage/credential-store';
+import { connectionManager } from '@/lib/storage/connection-store';
 import { createStorageProvider } from '@/lib/storage/provider-factory';
 
 type RouteContext = {
@@ -10,10 +10,10 @@ export async function GET(request: NextRequest, context: RouteContext) {
   const { bucket } = await context.params;
   const searchParams = request.nextUrl.searchParams;
   const key = searchParams.get('key');
-  const credentialId = searchParams.get('credentialId');
+  const connectionId = searchParams.get('connectionId');
 
-  if (!credentialId) {
-    return NextResponse.json({ error: 'credentialId is required' }, { status: 400 });
+  if (!connectionId) {
+    return NextResponse.json({ error: 'connectionId is required' }, { status: 400 });
   }
 
   if (!key) {
@@ -21,15 +21,15 @@ export async function GET(request: NextRequest, context: RouteContext) {
   }
 
   try {
-    // Get the credential
-    const credential = credentialManager.getCredential(credentialId);
+    // Get the connection
+    const connection = connectionManager.getConnection(connectionId);
 
-    if (!credential) {
-      return NextResponse.json({ error: 'Credential not found' }, { status: 404 });
+    if (!connection) {
+      return NextResponse.json({ error: 'Connection not found' }, { status: 404 });
     }
 
     // Create storage provider
-    const provider = await createStorageProvider(credential);
+    const provider = await createStorageProvider(connection);
 
     // Get object
     const data = await provider.getObject(bucket, key);

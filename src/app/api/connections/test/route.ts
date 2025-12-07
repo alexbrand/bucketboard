@@ -1,38 +1,38 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createStorageProvider } from '@/lib/storage/provider-factory';
-import { Credentials } from '@/lib/types/credentials';
+import { Connection } from '@/lib/types/connections';
 import { substituteEnvVarsInObject } from '@/lib/utils/env-substitution';
-import { credentialManager } from '@/lib/storage/credential-store';
+import { connectionManager } from '@/lib/storage/connection-store';
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    let credentials: Credentials;
+    let connection: Connection;
 
-    // Check if testing by credential ID or by raw credentials
-    if (body.credentialId) {
-      // Fetch the credential from storage
-      const storedCredential = credentialManager.getCredential(body.credentialId);
-      if (!storedCredential) {
+    // Check if testing by connection ID or by raw connection
+    if (body.connectionId) {
+      // Fetch the connection from storage
+      const storedConnection = connectionManager.getConnection(body.connectionId);
+      if (!storedConnection) {
         return NextResponse.json(
           {
             success: false,
-            message: 'Credential not found',
+            message: 'Connection not found',
           },
           { status: 404 }
         );
       }
-      credentials = storedCredential;
+      connection = storedConnection;
     } else {
-      // Use the provided credentials
-      credentials = body as Credentials;
+      // Use the provided connection
+      connection = body as Connection;
     }
 
-    // Substitute environment variables in the credentials
-    const processedCredentials = substituteEnvVarsInObject(credentials);
+    // Substitute environment variables in the connection
+    const processedConnection = substituteEnvVarsInObject(connection);
 
     // Create a provider instance
-    const provider = await createStorageProvider(processedCredentials);
+    const provider = await createStorageProvider(processedConnection);
 
     // Test the connection
     const result = await provider.testConnection();
@@ -51,4 +51,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-

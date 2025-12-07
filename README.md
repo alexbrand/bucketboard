@@ -43,7 +43,7 @@ Support for all major cloud storage platforms:
 - 🔄 **Real-time operations** with progress tracking
 - 🔍 **Advanced search** and filtering capabilities
 - 📊 **Metadata management** and bulk operations
-- 🔐 **Secure authentication** with multiple credential management
+- 🔐 **Secure authentication** with multiple connection management
 - 📁 **Hierarchical folder views** despite flat object structure
 - ⚡ **Concurrent operations** for improved throughput
 - 📈 **Storage analytics** and usage insights
@@ -62,7 +62,7 @@ Support for all major cloud storage platforms:
 
 - Simple, fast, and local-first
 - Single-command startup with `npm run dev`
-- Credentials stored securely server-side
+- Connections stored securely server-side
 - No CORS configuration required on buckets
 
 ### Technology Stack
@@ -108,10 +108,10 @@ For local testing without connecting to real cloud services, you can use the inc
    docker compose up -d
    ```
 
-2. Configure credentials (see `DOCKER_SETUP.md` for detailed instructions):
+2. Configure connections (see `DOCKER_SETUP.md` for detailed instructions):
    ```bash
    mkdir -p data
-   cp credentials.yaml.example data/credentials.yaml
+   cp connections.yaml.example data/connections.yaml
    ```
 
 3. Start the application and test against the local emulators.
@@ -156,6 +156,6 @@ See [tasks.md](./tasks.md) for detailed implementation status. Most core feature
 - ✅ Search and filtering capabilities
 - ✅ Metadata management
 - ✅ Storage analytics dashboard
-- ✅ Multi-cloud credential management
+- ✅ Multi-cloud connection management
 
 **Status**: 🚀 Core features complete, ready for use

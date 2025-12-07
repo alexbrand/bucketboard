@@ -29,8 +29,8 @@ export function GlobalKeyboardShortcuts() {
     },
     {
       key: 'c',
-      description: 'Go to Credentials',
-      action: () => router.push('/credentials'),
+      description: 'Go to Connections',
+      action: () => router.push('/connections'),
     },
     {
       key: '?',

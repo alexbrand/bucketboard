@@ -1,2 +1,2 @@
 # False positive - this is placeholder text showing users the expected format
-src/components/CredentialForm.tsx:private-key:286
+src/components/ConnectionForm.tsx:private-key:286

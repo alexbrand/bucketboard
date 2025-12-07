@@ -95,9 +95,9 @@ const FilePreview = dynamic(
 
 ### Security Considerations
 
-- Preview endpoint validates credentials before serving files
+- Preview endpoint validates connections before serving files
 - Uses the existing authentication system
-- No direct file access without proper credentials
+- No direct file access without proper connection
 - Content-Type validation prevents serving potentially dangerous files
 
 ## Usage Examples
