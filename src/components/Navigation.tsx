@@ -22,7 +22,7 @@ export function Navigation() {
         <div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary">
           <span className="text-sm font-bold text-primary-foreground">B</span>
         </div>
-        <span className="text-sm font-semibold">bixo</span>
+        <span className="text-sm font-semibold">bucketbrowser</span>
       </Link>
 
       <div className="flex items-center gap-1">

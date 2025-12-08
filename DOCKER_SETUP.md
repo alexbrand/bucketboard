@@ -1,6 +1,6 @@
 # Docker Compose Setup for Local Testing
 
-This Docker Compose setup provides local emulators for all three cloud storage providers, allowing you to test bixo without connecting to real cloud services.
+This Docker Compose setup provides local emulators for all three cloud storage providers, allowing you to test bucketbrowser without connecting to real cloud services.
 
 ## Services
 

@@ -2,7 +2,7 @@
 
 ## ✅ Feature Complete
 
-This feature adds concurrent file upload and download capabilities with real-time progress tracking to bixo.
+This feature adds concurrent file upload and download capabilities with real-time progress tracking to bucketbrowser.
 
 ## What's New
 

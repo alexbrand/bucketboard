@@ -20,7 +20,7 @@ Virtual scrolling (also called windowing) is a technique where only the visible 
 ### Method 1: Manual Testing with Real Buckets
 
 1. **Find a bucket with many objects** (1000+)
-2. Navigate to the bucket in bixo
+2. Navigate to the bucket in bucketbrowser
 3. Observe:
    - ✅ Smooth scrolling
    - ✅ No lag when scrolling quickly

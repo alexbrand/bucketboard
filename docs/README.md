@@ -1,6 +1,6 @@
 # Documentation
 
-This directory contains implementation notes and technical documentation for bixo.
+This directory contains implementation notes and technical documentation for bucketbrowser.
 
 ## Documentation Files
 

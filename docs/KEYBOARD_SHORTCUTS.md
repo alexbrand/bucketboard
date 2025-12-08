@@ -1,6 +1,6 @@
 # Keyboard Shortcuts
 
-bixo includes comprehensive keyboard shortcuts to improve navigation efficiency and user productivity.
+bucketbrowser includes comprehensive keyboard shortcuts to improve navigation efficiency and user productivity.
 
 ## Global Shortcuts
 

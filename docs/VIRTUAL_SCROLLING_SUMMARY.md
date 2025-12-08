@@ -2,7 +2,7 @@
 
 ## Feature Overview
 
-Virtual scrolling has been successfully implemented for bixo's object lists, enabling efficient rendering of large datasets with thousands of objects.
+Virtual scrolling has been successfully implemented for bucketbrowser's object lists, enabling efficient rendering of large datasets with thousands of objects.
 
 ## What Was Built
 
@@ -186,7 +186,7 @@ testVirtualScrollingPerformance();
 ### Manual Test
 
 1. Find a bucket with 1,000+ objects
-2. Open the bucket in bixo
+2. Open the bucket in bucketbrowser
 3. Scroll through the list
 4. Try search/filter features
 5. Verify smooth performance
@@ -232,7 +232,7 @@ The next open task in `tasks.md` is:
 
 ## Summary
 
-Virtual scrolling implementation is a **complete success**. bixo can now handle enterprise-scale buckets with millions of objects while maintaining excellent performance and user experience. The implementation is transparent to users and requires no configuration.
+Virtual scrolling implementation is a **complete success**. bucketbrowser can now handle enterprise-scale buckets with millions of objects while maintaining excellent performance and user experience. The implementation is transparent to users and requires no configuration.
 
 **Status**: ✅ Production Ready  
 **Performance**: ⚡ Excellent (60fps, <100ms renders)  

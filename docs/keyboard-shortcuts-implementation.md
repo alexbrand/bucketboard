@@ -1,10 +1,10 @@
 # Keyboard Shortcuts Implementation
 
-This document describes the implementation details of the keyboard shortcuts and navigation features in bixo.
+This document describes the implementation details of the keyboard shortcuts and navigation features in bucketbrowser.
 
 ## Overview
 
-The keyboard shortcuts system provides comprehensive keyboard navigation and shortcuts throughout bixo to improve navigation efficiency and user productivity.
+The keyboard shortcuts system provides comprehensive keyboard navigation and shortcuts throughout bucketbrowser to improve navigation efficiency and user productivity.
 
 ## Architecture
 

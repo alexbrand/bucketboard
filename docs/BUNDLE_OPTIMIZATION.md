@@ -1,6 +1,6 @@
 # Bundle Size Optimization & Lazy Loading
 
-This document outlines the bundle size optimizations and lazy loading strategies implemented in bixo.
+This document outlines the bundle size optimizations and lazy loading strategies implemented in bucketbrowser.
 
 ## Overview
 

@@ -1,4 +1,4 @@
-# bixo Implementation Plan
+# bucketbrowser Implementation Plan
 
 ### Project Setup
 

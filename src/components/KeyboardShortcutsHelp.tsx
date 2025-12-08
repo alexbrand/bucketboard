@@ -81,7 +81,7 @@ export function KeyboardShortcutsHelp({ isOpen, onClose }: KeyboardShortcutsHelp
             <DialogTitle>Keyboard Shortcuts</DialogTitle>
           </div>
           <DialogDescription>
-            Use these keyboard shortcuts to navigate and interact with bixo
+            Use these keyboard shortcuts to navigate and interact with bucketbrowser
           </DialogDescription>
         </DialogHeader>
         <div className="mt-4 max-h-[60vh] overflow-y-auto pr-2 space-y-6">

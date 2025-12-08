@@ -2,7 +2,7 @@ services:
   # AWS S3 Emulator (LocalStack)
   localstack:
     image: localstack/localstack:latest
-    container_name: bixo-localstack
+    container_name: bucketbrowser-localstack
     ports:
       - '4566:4566' # LocalStack Gateway
       - '4510-4559:4510-4559' # External services port range
@@ -22,12 +22,12 @@ services:
       timeout: 5s
       retries: 5
     networks:
-      - bixo-network
+      - bucketbrowser-network
 
   # Azure Blob Storage Emulator (Azurite)
   azurite:
     image: mcr.microsoft.com/azure-storage/azurite:latest
-    container_name: bixo-azurite
+    container_name: bucketbrowser-azurite
     ports:
       - '10000:10000' # Blob service
       - '10001:10001' # Queue service (not used, but Azurite requires it)
@@ -43,12 +43,12 @@ services:
       timeout: 5s
       retries: 5
     networks:
-      - bixo-network
+      - bucketbrowser-network
 
   # Google Cloud Storage Emulator (fake-gcs-server)
   fake-gcs:
     image: fsouza/fake-gcs-server:latest
-    container_name: bixo-fake-gcs
+    container_name: bucketbrowser-fake-gcs
     ports:
       - '4443:4443' # HTTP API
       - '9023:9023' # gRPC API (optional, for advanced features)
@@ -66,7 +66,7 @@ services:
       timeout: 5s
       retries: 5
     networks:
-      - bixo-network
+      - bucketbrowser-network
 
 volumes:
   localstack-data:
@@ -77,5 +77,5 @@ volumes:
     driver: local
 
 networks:
-  bixo-network:
+  bucketbrowser-network:
     driver: bridge
