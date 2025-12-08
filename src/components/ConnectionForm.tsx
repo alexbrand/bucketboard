@@ -166,17 +166,6 @@ export function ConnectionForm({ onSuccess, onCancel }: ConnectionFormProps) {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="space-y-2">
-        <Label htmlFor="name">Connection Name</Label>
-        <Input
-          id="name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          required
-          placeholder="My AWS Connection"
-        />
-      </div>
-
-      <div className="space-y-2">
         <Label htmlFor="provider">Provider</Label>
         <Select value={provider} onValueChange={(value) => setProvider(value as StorageProvider)}>
           <SelectTrigger id="provider">
@@ -188,6 +177,17 @@ export function ConnectionForm({ onSuccess, onCancel }: ConnectionFormProps) {
             <SelectItem value="gcp-storage">Google Cloud Storage</SelectItem>
           </SelectContent>
         </Select>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="name">Connection Name</Label>
+        <Input
+          id="name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          required
+          placeholder="My AWS Connection"
+        />
       </div>
 
       {isS3Provider && (
