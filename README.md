@@ -20,6 +20,16 @@ bucketbrowser provides a fast, unified interface for exploring and managing obje
 - ⌨️ Keyboard shortcuts ([documentation](KEYBOARD_SHORTCUTS.md))
 - 💾 Intelligent caching with prefetching
 
+## Quick Start
+
+Run bucketbrowser with Docker:
+
+```bash
+docker run -d -p 3000:3000 -v $(pwd)/data:/app/data ghcr.io/alexbrand/bucketbrowser:latest
+```
+
+Open [http://localhost:3000](http://localhost:3000) in your browser.
+
 ## Getting Started
 
 ### Installation
