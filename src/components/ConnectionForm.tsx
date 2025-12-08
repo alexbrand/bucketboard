@@ -37,6 +37,7 @@ export function ConnectionForm({ onSuccess, onCancel }: ConnectionFormProps) {
   // Azure Blob fields
   const [azureAccountName, setAzureAccountName] = useState('');
   const [azureAccountKey, setAzureAccountKey] = useState('');
+  const [azureEndpoint, setAzureEndpoint] = useState('');
 
   // GCP Storage fields
   const [gcpProjectId, setGcpProjectId] = useState('');
@@ -66,6 +67,9 @@ export function ConnectionForm({ onSuccess, onCancel }: ConnectionFormProps) {
           accountName: azureAccountName,
           accountKey: azureAccountKey,
         };
+        if (azureEndpoint) {
+          config.endpoint = azureEndpoint;
+        }
       } else if (provider === 'gcp-storage') {
         config = {
           projectId: gcpProjectId,
@@ -121,6 +125,9 @@ export function ConnectionForm({ onSuccess, onCancel }: ConnectionFormProps) {
           accountName: azureAccountName,
           accountKey: azureAccountKey,
         };
+        if (azureEndpoint) {
+          config.endpoint = azureEndpoint;
+        }
       } else if (provider === 'gcp-storage') {
         config = {
           projectId: gcpProjectId,
@@ -251,6 +258,19 @@ export function ConnectionForm({ onSuccess, onCancel }: ConnectionFormProps) {
               onChange={(e) => setAzureAccountKey(e.target.value)}
               required
             />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="azureEndpoint">Endpoint URL (optional)</Label>
+            <Input
+              id="azureEndpoint"
+              type="url"
+              value={azureEndpoint}
+              onChange={(e) => setAzureEndpoint(e.target.value)}
+              placeholder="https://myaccount.blob.core.windows.net"
+            />
+            <p className="text-xs text-muted-foreground">
+              Leave empty for Azure Blob Storage. For Azurite or custom endpoints, provide the endpoint URL.
+            </p>
           </div>
         </>
       )}
