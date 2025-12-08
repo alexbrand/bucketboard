@@ -275,7 +275,13 @@ export function VirtualizedObjectList({
         <div className="grid grid-cols-[auto_1fr_120px_200px] items-center gap-4 border-b bg-muted/30 px-6 py-3">
           <div className="flex items-center justify-center">
             <Checkbox
-              checked={headerCheckboxState === true ? true : headerCheckboxState === 'indeterminate' ? ('indeterminate' as any) : false}
+              checked={
+                headerCheckboxState === true
+                  ? true
+                  : headerCheckboxState === 'indeterminate'
+                    ? ('indeterminate' as any)
+                    : false
+              }
               onCheckedChange={() => {
                 if (onToggleSelectAll) {
                   onToggleSelectAll();
@@ -289,15 +295,9 @@ export function VirtualizedObjectList({
               title="Select all files (folders excluded)"
             />
           </div>
-          <div className="text-sm font-medium text-muted-foreground">
-            Name
-          </div>
-          <div className="text-right text-sm font-medium text-muted-foreground">
-            Size
-          </div>
-          <div className="text-right text-sm font-medium text-muted-foreground">
-            Modified
-          </div>
+          <div className="text-sm font-medium text-muted-foreground">Name</div>
+          <div className="text-right text-sm font-medium text-muted-foreground">Size</div>
+          <div className="text-right text-sm font-medium text-muted-foreground">Modified</div>
         </div>
       )}
       <div className="flex-1 overflow-hidden">

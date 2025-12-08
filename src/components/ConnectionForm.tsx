@@ -269,7 +269,8 @@ export function ConnectionForm({ onSuccess, onCancel }: ConnectionFormProps) {
               placeholder="https://myaccount.blob.core.windows.net"
             />
             <p className="text-xs text-muted-foreground">
-              Leave empty for Azure Blob Storage. For Azurite or custom endpoints, provide the endpoint URL.
+              Leave empty for Azure Blob Storage. For Azurite or custom endpoints, provide the
+              endpoint URL.
             </p>
           </div>
         </>

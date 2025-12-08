@@ -16,7 +16,10 @@ export function ObjectListSkeleton({
       <Card className="h-full overflow-hidden shadow-none">
         <div className="h-full overflow-y-auto">
           {showNavigateUp && (
-            <div className="grid grid-cols-[auto_1fr_120px_200px] items-center gap-4 border-b px-6" style={{ height: '56px' }}>
+            <div
+              className="grid grid-cols-[auto_1fr_120px_200px] items-center gap-4 border-b px-6"
+              style={{ height: '56px' }}
+            >
               <div className="flex items-center justify-center h-4 w-4">
                 {/* Placeholder for checkbox alignment */}
               </div>
@@ -32,7 +35,7 @@ export function ObjectListSkeleton({
             // Deterministic width variation for visual interest
             const widthVariations = [65, 75, 70, 80, 68, 72, 78, 85, 70, 75];
             const widthPercent = widthVariations[index % widthVariations.length];
-            
+
             return (
               <div
                 key={index}

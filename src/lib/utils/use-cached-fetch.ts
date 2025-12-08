@@ -87,7 +87,10 @@ export function useCachedFetch<T>(
         const result = await fetcherRef.current();
 
         // Check if request was aborted (could be aborted due to cache key change or disabled)
-        if (currentAbortController.signal.aborted || abortControllerRef.current !== currentAbortController) {
+        if (
+          currentAbortController.signal.aborted ||
+          abortControllerRef.current !== currentAbortController
+        ) {
           return;
         }
 
@@ -96,7 +99,10 @@ export function useCachedFetch<T>(
         setLastUpdated(Date.now());
       } catch (err) {
         // Don't set error if request was aborted or if abort controller changed
-        if (currentAbortController.signal.aborted || abortControllerRef.current !== currentAbortController) {
+        if (
+          currentAbortController.signal.aborted ||
+          abortControllerRef.current !== currentAbortController
+        ) {
           return;
         }
 
@@ -105,7 +111,10 @@ export function useCachedFetch<T>(
         console.error(`Error fetching ${cacheKey}:`, error);
       } finally {
         // Only update loading state if this is still the current request
-        if (!currentAbortController.signal.aborted && abortControllerRef.current === currentAbortController) {
+        if (
+          !currentAbortController.signal.aborted &&
+          abortControllerRef.current === currentAbortController
+        ) {
           setLoading(false);
         }
       }

@@ -127,7 +127,7 @@ function BucketsPageContent() {
   // Refs for triggering file uploads
   const fileInputRef = useRef<HTMLInputElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
-  
+
   // Track previous connection ID to invalidate cache when it changes
   const prevConnectionIdRef = useRef<string>('');
 
@@ -154,7 +154,9 @@ function BucketsPageContent() {
       const oldConnectionId = prevConnectionIdRef.current;
       const escapedOldConnectionId = oldConnectionId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       // Invalidate objects, metadata, and analytics cache for the old connection
-      cacheManager.invalidatePattern(new RegExp(`^(objects|metadata|analytics):.*:${escapedOldConnectionId}(:.*)?$`));
+      cacheManager.invalidatePattern(
+        new RegExp(`^(objects|metadata|analytics):.*:${escapedOldConnectionId}(:.*)?$`)
+      );
     }
     prevConnectionIdRef.current = selectedCredentialId;
   }, [selectedCredentialId]);
@@ -166,18 +168,18 @@ function BucketsPageContent() {
     selectedCredentialId,
     currentPrefix
   );
-  
+
   // Use refs to ensure fetcher always uses latest values
   const selectedBucketRef = useRef(selectedBucket);
   const selectedCredentialIdRef = useRef(selectedCredentialId);
   const currentPrefixRef = useRef(currentPrefix);
-  
+
   useEffect(() => {
     selectedBucketRef.current = selectedBucket;
     selectedCredentialIdRef.current = selectedCredentialId;
     currentPrefixRef.current = currentPrefix;
   }, [selectedBucket, selectedCredentialId, currentPrefix]);
-  
+
   const {
     data: objectsData,
     loading,
@@ -190,7 +192,7 @@ function BucketsPageContent() {
       const bucket = selectedBucketRef.current;
       const connectionId = selectedCredentialIdRef.current;
       const prefix = currentPrefixRef.current;
-      
+
       // Defensive check: don't fetch if bucket or credential is missing
       if (!bucket || !connectionId) {
         throw new Error('Bucket or connection not selected');
@@ -722,8 +724,8 @@ function BucketsPageContent() {
   const toggleSelectAll = () => {
     // Only check files, not folders
     const filesOnly = filteredObjects.filter((obj) => !obj.isFolder);
-    const allFilesSelected = filesOnly.length > 0 && 
-      filesOnly.every((obj) => selectedFiles.has(obj.key));
+    const allFilesSelected =
+      filesOnly.length > 0 && filesOnly.every((obj) => selectedFiles.has(obj.key));
     if (allFilesSelected) {
       deselectAll();
     } else {
@@ -1393,14 +1395,16 @@ function BucketsPageContent() {
 
 export default function BucketsPage() {
   return (
-    <Suspense fallback={
-      <div className="flex h-screen items-center justify-center">
-        <div className="text-center">
-          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
-          <p className="mt-4 text-sm text-muted-foreground">Loading...</p>
+    <Suspense
+      fallback={
+        <div className="flex h-screen items-center justify-center">
+          <div className="text-center">
+            <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+            <p className="mt-4 text-sm text-muted-foreground">Loading...</p>
+          </div>
         </div>
-      </div>
-    }>
+      }
+    >
       <BucketsPageContent />
     </Suspense>
   );
