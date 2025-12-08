@@ -1,0 +1,76 @@
+name: E2E Tests
+
+on:
+  pull_request:
+    branches:
+      - '**'
+  push:
+    branches:
+      - main
+
+jobs:
+  e2e-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Start Docker Compose services
+        run: docker compose up -d
+
+      - name: Wait for services to be healthy
+        run: |
+          echo "Waiting for LocalStack..."
+          timeout 60 bash -c 'until curl -f http://localhost:4566/_localstack/health > /dev/null 2>&1; do sleep 2; done'
+          echo "Waiting for Azurite..."
+          timeout 60 bash -c 'until nc -z localhost 10000; do sleep 2; done'
+          echo "Waiting for fake-gcs-server..."
+          timeout 60 bash -c 'until curl -f http://localhost:4443/storage/v1/b > /dev/null 2>&1; do sleep 2; done'
+          echo "All services are healthy!"
+
+      - name: Set up connections configuration
+        run: |
+          mkdir -p data
+          cp connections.yaml.example data/connections.yaml
+
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install chromium --with-deps
+
+      - name: Run E2E tests
+        run: pnpm test:e2e
+
+      - name: Upload test results
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
+
+      - name: Upload test traces
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: test-results/
+          retention-days: 7
+
+      - name: Show Docker logs on failure
+        if: failure()
+        run: docker compose logs
