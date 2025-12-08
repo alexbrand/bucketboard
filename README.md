@@ -6,180 +6,90 @@ A high-performance web-based object storage explorer for managing cloud storage 
 
 ## Overview
 
-bucketbrowser is designed to be a fast, intuitive, and powerful interface for exploring and managing object storage across all major cloud providers. Built with performance in mind, it provides a unified experience for working with cloud storage regardless of the underlying platform.
+bucketbrowser provides a fast, unified interface for exploring and managing object storage across major cloud providers. Built with Next.js and TypeScript, it offers efficient navigation through large buckets, full CRUD operations, and support for AWS S3, Azure Blob Storage, Google Cloud Storage, MinIO, and other S3-compatible storage providers.
 
-## Goals
+## Features
 
-### High Performance
+- 🚀 High-performance UI with virtual scrolling
+- 🔍 Advanced search and filtering
+- 📊 Metadata management and bulk operations
+- 🔐 Secure multi-connection management
+- 📁 Hierarchical folder views
+- ⚡ Concurrent operations for improved throughput
+- 📈 Storage analytics and usage insights
+- ⌨️ Keyboard shortcuts ([documentation](KEYBOARD_SHORTCUTS.md))
+- 💾 Intelligent caching with prefetching
 
-- **Fast navigation** through large buckets with millions of objects
-- **Efficient data loading** using pagination, virtual scrolling, and lazy loading
-- **Optimized transfers** for upload and download operations
-- **Minimal latency** with intelligent caching and prefetching strategies
+## Quick Start
 
-### Full CRUD Operations
+Run bucketbrowser with Docker:
 
-- **Create**: Upload files, create folders, and initialize new storage containers
-- **Read**: Browse, search, and preview objects with metadata inspection
-- **Update**: Modify object metadata, permissions, and storage classes
-- **Delete**: Remove objects and containers with batch operations support
+```bash
+docker run -d -p 3000:3000 -v $(pwd)/data:/app/data ghcr.io/alexbrand/bucketbrowser:latest
+```
 
-### Multi-Cloud Support
-
-Support for all major cloud storage platforms:
-
-- **AWS S3** - Amazon Simple Storage Service
-- **Azure Blob Storage** - Microsoft Azure Storage
-- **Google Cloud Storage** - GCP object storage
-- **MinIO** - Self-hosted S3-compatible storage
-- **Backblaze B2** - Cost-effective cloud storage
-- **DigitalOcean Spaces** - S3-compatible object storage
-- **Wasabi** - Hot cloud storage
-- And other S3-compatible storage providers
-
-## Key Features
-
-### Implemented
-
-- 🚀 **High-performance UI** with responsive design and virtual scrolling
-- 🔄 **Real-time operations** with progress tracking
-- 🔍 **Advanced search** and filtering capabilities
-- 📊 **Metadata management** and bulk operations
-- 🔐 **Secure authentication** with multiple connection management
-- 📁 **Hierarchical folder views** despite flat object structure
-- ⚡ **Concurrent operations** for improved throughput
-- 📈 **Storage analytics** and usage insights
-- 🔄 **Multi-region support** for global deployments
-- ⌨️ **Keyboard shortcuts** for efficient navigation and actions ([See full documentation](KEYBOARD_SHORTCUTS.md))
-- 💾 **Intelligent caching** with prefetching for optimal performance
-
-### Planned Capabilities
-
-- 🎨 **Enhanced interface** for managing permissions and ACLs
-- 🌙 **Dark mode** support (ThemeProvider component exists, needs full implementation)
-
-## Architecture
-
-### Design Principles
-
-- Simple, fast, and local-first
-- Single-command startup with `npm run dev`
-- Connections stored securely server-side
-- No CORS configuration required on buckets
-
-### Technology Stack
-
-**Framework**
-
-- **Next.js** - Full-stack React framework with API routes
-- **TypeScript** - Type-safe development
-- **Tailwind CSS** - Utility-first styling
-
-**Cloud SDKs** (server-side)
-
-- **AWS SDK for JavaScript** - S3 and S3-compatible storage
-- **@azure/storage-blob** - Azure Blob Storage
-- **@google-cloud/storage** - Google Cloud Storage
-
-**Development**
-
-- **ESLint** + **Prettier** - Code quality and formatting
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ## Getting Started
 
 ### Installation
 
-1. Install dependencies:
+```bash
+pnpm install
+pnpm dev
+```
 
-   ```bash
-   pnpm install
-   ```
-
-2. Run the development server:
-
-   ```bash
-   pnpm dev
-   ```
-
-3. Open [http://localhost:3000](http://localhost:3000) in your browser.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ### Configuration
 
 #### Read-Only Mode
 
-You can enable read-only mode by setting the `READ_ONLY` environment variable to `true`. When enabled, all write operations (upload, delete, create folder, edit metadata) will be disabled both in the UI and at the API level.
+Enable read-only mode to disable all write operations:
 
 ```bash
 READ_ONLY=true pnpm dev
 ```
 
-In read-only mode:
-- Upload buttons and functionality are hidden/disabled
-- Delete buttons are hidden
-- Create folder functionality is disabled
-- Edit metadata functionality is disabled
-- Write API endpoints return 403 errors
-- Keyboard shortcuts for write operations are disabled
+#### Local Testing
 
-### Local Testing with Docker Compose
+Use Docker Compose for local testing with storage emulators:
 
-For local testing without connecting to real cloud services, you can use the included Docker Compose setup with emulators for all three providers:
+```bash
+docker compose up -d
+mkdir -p data
+cp connections.yaml.example data/connections.yaml
+pnpm dev
+```
 
-1. Start the emulators:
+Optionally seed test data:
 
-   ```bash
-   docker compose up -d
-   ```
+```bash
+pnpm seed localstack-s3 test-bucket --count 100
+```
 
-2. Configure connections (see `DOCKER_SETUP.md` for detailed instructions):
+See [DOCKER_SETUP.md](./DOCKER_SETUP.md) for complete setup instructions.
 
-   ```bash
-   mkdir -p data
-   cp connections.yaml.example data/connections.yaml
-   ```
+## Technology Stack
 
-3. Start the application and test against the local emulators.
-
-4. Seed buckets with test data (optional):
-   ```bash
-   pnpm seed localstack-s3 test-bucket --count 100
-   ```
-
-See [DOCKER_SETUP.md](./DOCKER_SETUP.md) for complete setup instructions and [scripts/README.md](./scripts/README.md) for seeding script documentation.
+- **Next.js** - Full-stack React framework
+- **TypeScript** - Type-safe development
+- **Tailwind CSS** - Utility-first styling
+- **AWS SDK, Azure Storage SDK, Google Cloud SDK** - Cloud provider integration
 
 ## Contributing
 
-Contributions are welcome! Please feel free to submit issues and pull requests.
+Contributions are welcome! Please submit issues and pull requests.
 
 ### Security Checks
 
-This project uses [pre-commit](https://pre-commit.com) to run security checks (like gitleaks) before each commit.
+This project uses [pre-commit](https://pre-commit.com) for security checks:
 
-To set it up locally:
-
-1. Install pre-commit: `brew install pre-commit` (or via pip: `pip install pre-commit`)
-2. Install the git hooks:
-   ```bash
-   pre-commit install
-   ```
-
-Now checks will run automatically on every commit.
+```bash
+brew install pre-commit  # or: pip install pre-commit
+pre-commit install
+```
 
 ## License
 
 _(License information to be added)_
-
-## Roadmap
-
-See [tasks.md](./tasks.md) for detailed implementation status. Most core features are complete including:
-
-- ✅ Core infrastructure setup
-- ✅ AWS S3, Azure Blob Storage, and Google Cloud Storage integration
-- ✅ High-performance UI with virtual scrolling
-- ✅ Batch operations support
-- ✅ Search and filtering capabilities
-- ✅ Metadata management
-- ✅ Storage analytics dashboard
-- ✅ Multi-cloud connection management
-
-**Status**: 🚀 Core features complete, ready for use
