@@ -1,10 +1,10 @@
-# BucketBoard
+# bixo
 
 A high-performance web-based object storage explorer for managing cloud storage across multiple platforms.
 
 ## Overview
 
-BucketBoard is designed to be a fast, intuitive, and powerful interface for exploring and managing object storage across all major cloud providers. Built with performance in mind, it provides a unified experience for working with cloud storage regardless of the underlying platform.
+bixo is designed to be a fast, intuitive, and powerful interface for exploring and managing object storage across all major cloud providers. Built with performance in mind, it provides a unified experience for working with cloud storage regardless of the underlying platform.
 
 ## Goals
 

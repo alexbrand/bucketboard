@@ -84,16 +84,16 @@ The cache is automatically invalidated when you:
 
 ### Scenario 1: File Added via AWS Console
 
-1. You're viewing a folder in BucketBoard (cached for 1 minute)
+1. You're viewing a folder in bixo (cached for 1 minute)
 2. You add a file `new-file.txt` via AWS Console
-3. **In BucketBoard**: The file won't appear immediately
+3. **In bixo**: The file won't appear immediately
 4. **After 1 minute**: The cache expires, next navigation will fetch fresh data
 5. **Or**: Click refresh, navigate away/back, or perform any action that invalidates cache
 
 ### Scenario 2: Multiple Files Uploaded via CLI
 
 1. You upload 10 files via AWS CLI to a folder
-2. You're viewing that folder in BucketBoard
+2. You're viewing that folder in bixo
 3. **The files won't appear** until cache expires or you trigger invalidation
 4. **Solution**: Click the refresh button (if we add one) or wait 1 minute
 

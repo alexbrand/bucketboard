@@ -1,6 +1,6 @@
 # Keyboard Shortcuts
 
-BucketBoard includes comprehensive keyboard shortcuts to improve navigation efficiency and user productivity.
+bixo includes comprehensive keyboard shortcuts to improve navigation efficiency and user productivity.
 
 ## Global Shortcuts
 

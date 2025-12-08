@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'BucketBoard',
+  title: 'bixo',
   description:
     'A high-performance web-based object storage explorer for managing cloud storage across multiple platforms',
 };

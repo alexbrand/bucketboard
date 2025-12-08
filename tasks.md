@@ -1,4 +1,4 @@
-# BucketBoard Implementation Plan
+# bixo Implementation Plan
 
 ### Project Setup
 

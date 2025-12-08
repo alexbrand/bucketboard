@@ -34,7 +34,7 @@ export function SimpleSidebar() {
             <Package className="h-6 w-6 text-primary-foreground" />
           </div>
           <div>
-            <div className="text-lg font-bold">BucketBoard</div>
+            <div className="text-lg font-bold">bixo</div>
             <div className="text-xs text-muted-foreground">Cloud Storage</div>
           </div>
         </Link>
