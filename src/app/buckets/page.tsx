@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, Fragment, useEffect } from 'react';
+import { useState, useRef, Fragment, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import { AppSidebar } from '@/components/AppSidebar';
@@ -67,7 +67,7 @@ interface ObjectsResponse {
   prefix: string;
 }
 
-export default function BucketsPage() {
+function BucketsPageContent() {
   const searchParams = useSearchParams();
   const [selectedCredentialId, setSelectedCredentialId] = useState<string>('');
   const [selectedBucket, setSelectedBucket] = useState<string>('');
@@ -1388,5 +1388,20 @@ export default function BucketsPage() {
         />
       )}
     </div>
+  );
+}
+
+export default function BucketsPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex h-screen items-center justify-center">
+        <div className="text-center">
+          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+          <p className="mt-4 text-sm text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    }>
+      <BucketsPageContent />
+    </Suspense>
   );
 }
