@@ -88,16 +88,25 @@ test.describe('Bucket Browsing', () => {
     const connectionSelector = page.locator('#connection-selector');
     await expect(connectionSelector).toBeVisible();
 
-    // Open the connection dropdown
-    const selectTrigger = connectionSelector.locator('button[role="combobox"]');
-    await selectTrigger.click();
-
-    // Check that the dropdown content is visible
+    // Wait for connections to load - wait for at least one option to be available
+    // This ensures the API call has completed and options are rendered
     const selectContent = page.locator('[role="listbox"]');
+    const selectTrigger = connectionSelector.locator('button[role="combobox"]');
+
+    // Check if dropdown is already open, if not, open it
+    const isOpen = await selectContent.isVisible();
+    if (!isOpen) {
+      await selectTrigger.click();
+    }
+
+    // Wait for the dropdown content to be visible
     await expect(selectContent).toBeVisible();
 
-    // Get all connection options
+    // Wait for at least one connection option to be available
     const options = selectContent.locator('[role="option"]');
+    await expect(options.first()).toBeVisible({ timeout: 1000 });
+
+    // Get all connection options
     const optionCount = await options.count();
 
     // Should have at least one connection
