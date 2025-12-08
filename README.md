@@ -3,6 +3,7 @@
 [![Build Container](https://github.com/alexbrand/bucketbrowser/actions/workflows/build-container.yml/badge.svg)](https://github.com/alexbrand/bucketbrowser/actions/workflows/build-container.yml)
 [![E2E Tests](https://github.com/alexbrand/bucketbrowser/actions/workflows/e2e-tests.yml/badge.svg)](https://github.com/alexbrand/bucketbrowser/actions/workflows/e2e-tests.yml)
 [![Push Container](https://github.com/alexbrand/bucketbrowser/actions/workflows/push-container.yml/badge.svg)](https://github.com/alexbrand/bucketbrowser/actions/workflows/push-container.yml)
+[![Known Vulnerabilities](https://snyk.io/test/github/alexbrand/bucketbrowser/badge.svg)](https://snyk.io/test/github/alexbrand/bucketbrowser)
 
 A high-performance web-based object storage explorer for managing cloud storage across multiple platforms.
 
