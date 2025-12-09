@@ -1,4 +1,4 @@
-import { test as base } from '@playwright/test';
+import { providerFixture } from './provider-fixture';
 import { createTestBucket, cleanupBucket, seedTestData, SeedOptions } from './seed-utils';
 
 export type BucketFixtures = {
@@ -6,7 +6,7 @@ export type BucketFixtures = {
   testObjects: string[];
 };
 
-export const bucketFixture = base.extend<BucketFixtures>({
+export const bucketFixture = providerFixture.extend<BucketFixtures>({
   testBucket: async ({ provider }, use, testInfo) => {
     // Create unique bucket for this test
     // Use testId (which includes file path and test name) plus timestamp for uniqueness
