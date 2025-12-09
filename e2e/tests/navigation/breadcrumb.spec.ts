@@ -104,16 +104,20 @@ test.describe('Breadcrumb Navigation', () => {
 
     await selectBucket(page, testBucket);
 
-    // Wait for object list to load
-    const objectList = page.locator(SELECTORS.objectList);
-    await expect(objectList).toBeVisible({ timeout: 10000 });
+    // Wait for toolbar to be visible (breadcrumb is in the toolbar)
+    const toolbar = page.locator(SELECTORS.bucketToolbar);
+    await expect(toolbar).toBeVisible({ timeout: 10000 });
+
+    // Wait for content area to load (either object list or empty state)
+    const objectListContainer = page.locator(SELECTORS.objectListContainer);
+    await expect(objectListContainer).toBeVisible({ timeout: 10000 });
 
     // Check breadcrumb at root level
     const breadcrumb = page.locator(SELECTORS.breadcrumb);
-    if (await breadcrumb.isVisible({ timeout: 2000 }).catch(() => false)) {
-      const breadcrumbText = await breadcrumb.textContent();
-      // Breadcrumb should show bucket name or root indicator
-      expect(breadcrumbText).toBeTruthy();
-    }
+    await expect(breadcrumb).toBeVisible({ timeout: 5000 });
+    
+    const breadcrumbText = await breadcrumb.textContent();
+    // Breadcrumb should show bucket name or root indicator
+    expect(breadcrumbText).toBeTruthy();
   });
 });
