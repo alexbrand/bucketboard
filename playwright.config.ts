@@ -18,8 +18,25 @@ export default defineConfig({
 
   projects: [
     {
-      name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      name: 'aws-s3',
+      use: {
+        ...devices['Desktop Chrome'],
+        provider: 'localstack-s3',
+      },
+    },
+    {
+      name: 'azure-blob',
+      use: {
+        ...devices['Desktop Chrome'],
+        provider: 'azurite-blob',
+      },
+    },
+    {
+      name: 'gcp-storage',
+      use: {
+        ...devices['Desktop Chrome'],
+        provider: 'fake-gcs',
+      },
     },
   ],
 

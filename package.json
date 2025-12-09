@@ -12,7 +12,10 @@
     "seed": "tsx scripts/seed-bucket.ts",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
-    "test:e2e:headed": "playwright test --headed"
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:s3": "playwright test --project=aws-s3",
+    "test:e2e:azure": "playwright test --project=azure-blob",
+    "test:e2e:gcs": "playwright test --project=gcp-storage"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.946.0",

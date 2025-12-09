@@ -1,15 +1,14 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures';
+import { selectConnection, selectBucket } from './helpers/actions';
+import { expectConnectionsLoaded, expectBucketVisible } from './helpers/assertions';
+import { SELECTORS } from './helpers/selectors';
 
 /**
  * End-to-end test for the core bucket browsing flow.
- *
- * Prerequisites:
- * - Docker Compose services are running (LocalStack, Azurite, fake-gcs)
- * - connections.yaml is set up with at least the LocalStack S3 connection
- * - A test bucket with some objects exists (use `pnpm seed` to create test data)
+ * Uses the unified fixture system to work across all providers.
  */
 test.describe('Bucket Browsing', () => {
-  test('should display connections, buckets, and allow browsing objects', async ({ page }) => {
+  test('should display connections, buckets, and allow browsing objects', async ({ page, provider, testBucket, testObjects }) => {
     // Navigate to the app - it redirects from / to /buckets
     await page.goto('/');
 
@@ -17,81 +16,58 @@ test.describe('Bucket Browsing', () => {
     await expect(page).toHaveURL(/\/buckets/);
 
     // Verify the sidebar is visible
-    const sidebar = page.locator('#app-sidebar');
+    const sidebar = page.locator(SELECTORS.sidebar);
     await expect(sidebar).toBeVisible();
 
-    // Verify the connection selector is present
-    const connectionSelector = page.locator('#connection-selector');
-    await expect(connectionSelector).toBeVisible();
+    // Verify the connection selector is present and connections are loaded
+    await expectConnectionsLoaded(page);
 
-    // Wait for connections to load - the select should have a value
-    const selectTrigger = connectionSelector.locator('button[role="combobox"]');
-    await expect(selectTrigger).toBeVisible();
+    // Select the connection for this provider
+    await selectConnection(page, provider);
 
-    // Wait for either buckets to load or "No buckets found" message
-    const bucketsContainer = page.locator('#buckets-list-container');
+    // Wait for buckets to load
+    const bucketsContainer = page.locator(SELECTORS.bucketListContainer);
     await expect(bucketsContainer).toBeVisible();
-
-    // Wait for loading to complete
     await expect(bucketsContainer.getByText('Loading...')).toBeHidden({ timeout: 10000 });
 
-    // Check if we have buckets or need to show "no buckets" state
-    const bucketsList = page.locator('#buckets-list');
-    const noBucketsMessage = bucketsContainer.getByText('No buckets found');
+    // Verify test bucket is visible
+    await expectBucketVisible(page, testBucket);
 
-    // Either buckets are displayed or "No buckets found" is shown
-    const hasBuckets = await bucketsList.isVisible();
-    const hasNoBucketsMessage = await noBucketsMessage.isVisible();
+    // Select the test bucket
+    await selectBucket(page, testBucket);
 
-    expect(hasBuckets || hasNoBucketsMessage).toBe(true);
+    // Verify main content area shows bucket contents
+    const mainContent = page.locator(SELECTORS.mainContent);
+    await expect(mainContent).toBeVisible();
 
-    if (hasBuckets) {
-      // Get all bucket buttons
-      const bucketButtons = bucketsList.locator('button');
-      const bucketCount = await bucketButtons.count();
+    // Wait for loading state to complete
+    const objectListContainer = page.locator(SELECTORS.objectListContainer);
 
-      expect(bucketCount).toBeGreaterThan(0);
+    // Wait for either object list, empty bucket message, or the no-bucket-selected state
+    await expect(
+      objectListContainer
+        .or(mainContent.getByText('This bucket is empty'))
+        .or(mainContent.getByText('This folder is empty'))
+    ).toBeVisible({ timeout: 10000 });
 
-      // Click on the first bucket if not already selected
-      const firstBucket = bucketButtons.first();
-      await firstBucket.click();
+    // Verify the toolbar is present when a bucket is selected
+    const toolbar = page.locator(SELECTORS.bucketToolbar);
+    await expect(toolbar).toBeVisible();
 
-      // Verify main content area shows bucket contents
-      const mainContent = page.locator('#main-content');
-      await expect(mainContent).toBeVisible();
-
-      // Wait for loading state to complete
-      // The page might show a loading skeleton or the object list
-      const objectListContainer = page.locator('#object-list-container');
-
-      // Wait for either object list, empty bucket message, or the no-bucket-selected state
-      await expect(
-        objectListContainer
-          .or(mainContent.getByText('This bucket is empty'))
-          .or(mainContent.getByText('This folder is empty'))
-      ).toBeVisible({ timeout: 10000 });
-
-      // Verify the toolbar is present when a bucket is selected
-      const toolbar = page.locator('#bucket-toolbar');
-      await expect(toolbar).toBeVisible();
-
-      // Verify search and filter controls are present
-      const searchAndFilters = page.locator('#bucket-toolbar-search-and-filters');
-      await expect(searchAndFilters).toBeVisible();
-    }
+    // Verify search and filter controls are present
+    const searchAndFilters = page.locator(SELECTORS.searchAndFilters);
+    await expect(searchAndFilters).toBeVisible();
   });
 
-  test('should be able to switch between connections', async ({ page }) => {
+  test('should be able to switch between connections', async ({ page, provider }) => {
     await page.goto('/buckets');
 
-    // Wait for the page to load
-    const connectionSelector = page.locator('#connection-selector');
-    await expect(connectionSelector).toBeVisible();
+    // Wait for connections to load
+    await expectConnectionsLoaded(page);
 
-    // Wait for connections to load - wait for at least one option to be available
-    // This ensures the API call has completed and options are rendered
-    const selectContent = page.locator('[role="listbox"]');
+    const connectionSelector = page.locator(SELECTORS.connectionSelector);
     const selectTrigger = connectionSelector.locator('button[role="combobox"]');
+    const selectContent = page.locator(SELECTORS.connectionDropdown);
 
     // Check if dropdown is already open, if not, open it
     const isOpen = await selectContent.isVisible();
@@ -103,7 +79,7 @@ test.describe('Bucket Browsing', () => {
     await expect(selectContent).toBeVisible();
 
     // Wait for at least one connection option to be available
-    const options = selectContent.locator('[role="option"]');
+    const options = selectContent.locator(SELECTORS.connectionOption);
     await expect(options.first()).toBeVisible({ timeout: 1000 });
 
     // Get all connection options
@@ -117,32 +93,35 @@ test.describe('Bucket Browsing', () => {
     await expect(selectContent).toBeHidden();
   });
 
-  test('should show filter controls when Filters button is clicked', async ({ page }) => {
+  test('should show filter controls when Filters button is clicked', async ({ page, provider, testBucket }) => {
     await page.goto('/buckets');
 
+    await selectConnection(page, provider);
+
     // Wait for buckets to load
-    const bucketsContainer = page.locator('#buckets-list-container');
+    const bucketsContainer = page.locator(SELECTORS.bucketListContainer);
     await expect(bucketsContainer.getByText('Loading...')).toBeHidden({ timeout: 10000 });
 
-    // Check if we have a bucket selected (toolbar should be visible)
-    const toolbar = page.locator('#bucket-toolbar');
-    const hasToolbar = await toolbar.isVisible();
+    // Select a bucket to show the toolbar
+    await selectBucket(page, testBucket);
 
-    if (hasToolbar) {
-      // Click on the Filters button
-      const filtersButton = page.getByRole('button', { name: /Filters/i });
-      await filtersButton.click();
+    // Verify toolbar is visible
+    const toolbar = page.locator(SELECTORS.bucketToolbar);
+    await expect(toolbar).toBeVisible();
 
-      // Verify filter controls are shown
-      const fileTypeFilter = page.locator('#file-type-filter');
-      await expect(fileTypeFilter).toBeVisible();
+    // Click on the Filters button
+    const filtersButton = page.getByRole('button', { name: /Filters/i });
+    await filtersButton.click();
 
-      const sizeFilter = page.locator('#size-filter');
-      await expect(sizeFilter).toBeVisible();
+    // Verify filter controls are shown
+    const fileTypeFilter = page.locator(SELECTORS.fileTypeFilter);
+    await expect(fileTypeFilter).toBeVisible();
 
-      // Click Filters button again to hide
-      await filtersButton.click();
-      await expect(fileTypeFilter).toBeHidden();
-    }
+    const sizeFilter = page.locator(SELECTORS.sizeFilter);
+    await expect(sizeFilter).toBeVisible();
+
+    // Click Filters button again to hide
+    await filtersButton.click();
+    await expect(fileTypeFilter).toBeHidden();
   });
 });
