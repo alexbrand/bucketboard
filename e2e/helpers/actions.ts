@@ -94,27 +94,37 @@ export async function uploadFile(page: Page, filePath: string): Promise<void> {
 
 /**
  * Deletes an object via the UI
+ * Requires selecting the checkbox first, then clicking the delete button in the toolbar
  */
 export async function deleteObject(page: Page, objectKey: string): Promise<void> {
   // Find the object row
   const objectList = page.locator(SELECTORS.objectList);
   await expect(objectList).toBeVisible();
 
-  const objectRow = objectList.locator(SELECTORS.objectRow).filter({ hasText: objectKey });
+  // Find the object row - match by the filename (last part of the key)
+  const fileName = objectKey.split('/').pop() || objectKey;
+  const objectRow = objectList.locator(SELECTORS.objectRow).filter({ hasText: new RegExp(fileName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')) });
   await expect(objectRow).toBeVisible();
 
-  // Hover to show actions (if needed)
-  await objectRow.hover();
+  // Click the checkbox in the object row to select it
+  const checkbox = objectRow.locator('input[type="checkbox"]').or(objectRow.locator('[role="checkbox"]'));
+  await expect(checkbox).toBeVisible();
+  await checkbox.click();
 
-  // Find and click delete button for this object
-  const deleteButton = objectRow.locator(SELECTORS.deleteButton).first();
+  // Wait for the delete button to appear in the toolbar
+  const deleteButton = page.locator(SELECTORS.deleteButton);
+  await expect(deleteButton).toBeVisible({ timeout: 5000 });
+
+  // Set up dialog handler BEFORE clicking delete button
+  // The page uses window.confirm, so we need to handle it via page.on('dialog')
+  page.once('dialog', async (dialog) => {
+    if (dialog.type() === 'confirm') {
+      await dialog.accept();
+    }
+  });
+
+  // Click the delete button (this will trigger the confirm dialog)
   await deleteButton.click();
-
-  // Handle confirmation dialog if it appears
-  const confirmButton = page.getByRole('button', { name: /confirm|delete|yes/i });
-  if (await confirmButton.isVisible({ timeout: 2000 }).catch(() => false)) {
-    await confirmButton.click();
-  }
 
   // Wait for object to disappear
   await expect(objectRow).toBeHidden({ timeout: 5000 });

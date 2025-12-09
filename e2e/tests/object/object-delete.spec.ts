@@ -51,33 +51,42 @@ test.describe('Object Delete', () => {
 
     // Find an object to delete
     const objectKey = testObjects[0];
-    const objectRow = objectList.locator(SELECTORS.objectRow).filter({ hasText: new RegExp(objectKey.split('/').pop() || objectKey) });
+    const fileName = objectKey.split('/').pop() || objectKey;
+    const objectRow = objectList.locator(SELECTORS.objectRow).filter({ hasText: new RegExp(fileName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')) });
     await expect(objectRow).toBeVisible();
 
-    // Hover to show actions
-    await objectRow.hover();
+    // Click the checkbox to select the object
+    const checkbox = objectRow.locator('input[type="checkbox"]').or(objectRow.locator('[role="checkbox"]'));
+    await expect(checkbox).toBeVisible();
+    await checkbox.click();
 
-    // Click delete button
-    const deleteButton = objectRow.locator(SELECTORS.deleteButton).first();
-    if (await deleteButton.isVisible({ timeout: 2000 }).catch(() => false)) {
-      await deleteButton.click();
+    // Wait for the delete button to appear in the toolbar
+    const deleteButton = page.locator(SELECTORS.deleteButton);
+    await expect(deleteButton).toBeVisible({ timeout: 5000 });
 
-      // Check for confirmation dialog
-      const confirmDialog = page.getByRole('dialog');
-      const confirmButton = page.getByRole('button', { name: /confirm|delete|yes/i });
-
-      // Dialog should appear
-      if (await confirmDialog.isVisible({ timeout: 2000 }).catch(() => false)) {
-        await expect(confirmDialog).toBeVisible();
-        
+    // Set up dialog handler BEFORE clicking delete button to cancel the deletion
+    let dialogHandled = false;
+    page.once('dialog', async (dialog) => {
+      dialogHandled = true;
+      if (dialog.type() === 'confirm') {
+        // Verify the dialog message
+        const message = dialog.message();
+        expect(message.toLowerCase()).toContain('delete');
         // Cancel the deletion
-        const cancelButton = page.getByRole('button', { name: /cancel|no/i });
-        if (await cancelButton.isVisible({ timeout: 1000 }).catch(() => false)) {
-          await cancelButton.click();
-        } else {
-          await page.keyboard.press('Escape');
-        }
+        await dialog.dismiss();
       }
-    }
+    });
+
+    // Click the delete button (this will trigger the confirm dialog)
+    await deleteButton.click();
+
+    // Wait a moment for dialog to be handled
+    await page.waitForTimeout(500);
+    
+    // Verify dialog was shown
+    expect(dialogHandled).toBe(true);
+
+    // Verify object is still visible (deletion was cancelled)
+    await expect(objectRow).toBeVisible();
   });
 });
