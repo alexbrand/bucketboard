@@ -165,6 +165,7 @@ export function AppSidebar({
               {buckets.map((bucket) => (
                 <button
                   key={bucket.name}
+                  data-testid="bucket-list-item"
                   onClick={() => onBucketSelect(bucket.name)}
                   className={`group flex w-full items-center gap-3 rounded-md px-3 py-2 text-left text-sm transition-colors cursor-pointer ${
                     selectedBucket === bucket.name

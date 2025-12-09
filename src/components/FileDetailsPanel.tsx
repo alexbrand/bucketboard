@@ -245,12 +245,13 @@ export function FileDetailsPanel({
   return (
     <div
       id="file-details-panel"
+      data-testid="metadata-panel"
       className="flex h-full w-96 flex-col border-l bg-background shadow-lg"
     >
       {/* Header */}
       <div id="details-panel-header" className="flex items-center justify-between px-6 pt-4">
         <h2 className="text-lg font-semibold">Details</h2>
-        <Button variant="ghost" size="icon" onClick={onClose}>
+        <Button data-testid="metadata-close" variant="ghost" size="icon" onClick={onClose}>
           <X className="h-4 w-4" />
         </Button>
       </div>
@@ -503,7 +504,7 @@ export function FileDetailsPanel({
           ) : (
             <div className="space-y-2">
               {!readOnly && (
-                <Button variant="outline" onClick={startEditingMetadata} className="w-full">
+                <Button data-testid="edit-metadata" variant="outline" onClick={startEditingMetadata} className="w-full">
                   Edit Metadata
                 </Button>
               )}
