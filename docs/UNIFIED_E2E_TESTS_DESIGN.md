@@ -3,7 +3,7 @@
 > **Status:** Draft
 > **Author:** Claude
 > **Date:** 2025-12-08
-> **Last Updated:** 2025-12-08
+> **Last Updated:** 2025-12-09
 
 ## Table of Contents
 
@@ -287,11 +287,6 @@ export const test = base.extend<TestFixtures>({
     await use(bucket);
     await cleanupBucket(provider, bucket);
   },
-
-  apiClient: async ({ provider }, use) => {
-    const client = new TestAPIClient(provider);
-    await use(client);
-  },
 });
 
 // e2e/tests/bucket-operations.spec.ts
@@ -345,20 +340,17 @@ e2e/
 │   ├── index.ts              # Main fixture exports
 │   ├── provider-fixture.ts   # Provider selection logic
 │   ├── bucket-fixture.ts     # Test bucket lifecycle
-│   ├── seed-fixture.ts       # Test data seeding
-│   └── api-client.ts         # Direct API testing utilities
+│   └── seed-fixture.ts       # Test data seeding
 ├── helpers/
 │   ├── selectors.ts          # Common page selectors
-│   ├── actions.ts            # Reusable page actions
-│   └── assertions.ts         # Custom assertions
+│   ├── actions.ts            # Reusable UI actions (click, navigate, etc.)
+│   └── assertions.ts         # Custom UI assertions
 ├── tests/
 │   ├── connection/
 │   │   ├── connection-switching.spec.ts
 │   │   └── connection-management.spec.ts
 │   ├── bucket/
-│   │   ├── bucket-list.spec.ts
-│   │   ├── bucket-creation.spec.ts
-│   │   └── bucket-deletion.spec.ts
+│   │   └── bucket-list.spec.ts
 │   ├── object/
 │   │   ├── object-list.spec.ts
 │   │   ├── object-upload.spec.ts
@@ -371,61 +363,160 @@ e2e/
 └── playwright.config.ts
 ```
 
+> **Note:** All tests are browser/UI level tests using Playwright. We do not test at the API level directly - all interactions go through the UI.
+
 ---
 
-## Implementation Plan
+## Implementation Tasks
 
-### Phase 1: Foundation (Week 1)
+### 1. Playwright Configuration
 
-**Tasks:**
-- [ ] Create fixture architecture in `e2e/fixtures/`
-- [ ] Implement provider fixture with project integration
-- [ ] Create test bucket lifecycle fixture (create/seed/cleanup)
-- [ ] Update `playwright.config.ts` with three provider projects
-- [ ] Add helper utilities for common operations
+- [ ] **Update `playwright.config.ts` with provider projects**
+  - Add three projects: `aws-s3`, `azure-blob`, `gcp-storage`
+  - Each project should set `use: { provider: '<connection-id>' }` in its configuration
+  - Keep existing configuration for base URL, reporters, retries, and web server
+  - Example structure:
+    ```typescript
+    projects: [
+      { name: 'aws-s3', use: { ...devices['Desktop Chrome'], provider: 'localstack-s3' } },
+      { name: 'azure-blob', use: { ...devices['Desktop Chrome'], provider: 'azurite-blob' } },
+      { name: 'gcp-storage', use: { ...devices['Desktop Chrome'], provider: 'fake-gcs' } },
+    ]
+    ```
 
-**Deliverables:**
-- Working fixture system
-- Single test running on all three providers
+### 2. Fixture System
 
-### Phase 2: Core Test Suite (Week 2)
+- [ ] **Create `e2e/fixtures/provider-fixture.ts`**
+  - Export a Playwright fixture that extracts `provider` from `testInfo.project.use.provider`
+  - Throw an error if provider is not configured
+  - This fixture makes the current provider available to all tests
 
-**Tasks:**
-- [ ] Migrate existing tests to new fixture system
-- [ ] Implement bucket listing tests
-- [ ] Implement object listing tests
-- [ ] Implement upload/download tests
-- [ ] Add object deletion tests
+- [ ] **Create `e2e/fixtures/bucket-fixture.ts`**
+  - Create a `testBucket` fixture that:
+    1. Generates a unique bucket name using `testInfo.testId` and timestamp
+    2. Calls the existing seed script (`scripts/seed-bucket.ts`) via child process or imports its logic
+    3. Provides the bucket name to the test via `use(bucketName)`
+    4. Cleans up the bucket after the test completes
+  - Create a `testObjects` fixture that seeds standard test objects and returns their keys
 
-**Deliverables:**
-- Complete CRUD test coverage
-- All tests passing on all providers
+- [ ] **Create `e2e/fixtures/seed-utils.ts`**
+  - Implement `createTestBucket(provider: string, bucketName: string)` - creates bucket via provider SDK
+  - Implement `seedTestData(provider: string, bucket: string, options)` - uploads test files
+  - Implement `cleanupBucket(provider: string, bucketName: string)` - deletes all objects and bucket
+  - Import provider factory from `src/lib/storage/provider-factory.ts` for direct SDK access
+  - Options should support: `count`, `includeFolders`, `includeNested`, `fileTypes`
 
-### Phase 3: Advanced Features (Week 3)
+- [ ] **Create `e2e/fixtures/index.ts`**
+  - Use `mergeTests` from `@playwright/test` to combine provider and bucket fixtures
+  - Export the combined `test` and `expect` from this file
+  - Export a `skipForProvider(providers: string[], reason: string)` helper function
 
-**Tasks:**
-- [ ] Add metadata management tests
-- [ ] Implement folder navigation tests
-- [ ] Add error handling tests
-- [ ] Implement pagination/virtual scrolling tests
-- [ ] Add search/filter tests
+### 3. UI Helper Utilities
 
-**Deliverables:**
-- Comprehensive feature coverage
-- Edge case handling
+- [ ] **Create `e2e/helpers/selectors.ts`**
+  - Define constants for common UI selectors:
+    - `SELECTORS.connectionSelector` - the connection dropdown
+    - `SELECTORS.bucketList` - bucket list container
+    - `SELECTORS.objectList` - object list/table
+    - `SELECTORS.breadcrumb` - breadcrumb navigation
+    - `SELECTORS.uploadButton` - upload button
+    - `SELECTORS.deleteButton` - delete button
+    - `SELECTORS.metadataPanel` - metadata side panel
+  - Use `data-testid` attributes where available, fall back to ARIA roles
 
-### Phase 4: CI/CD Integration (Week 4)
+- [ ] **Create `e2e/helpers/actions.ts`**
+  - `selectConnection(page: Page, connectionId: string)` - selects a connection from dropdown
+  - `selectBucket(page: Page, bucketName: string)` - clicks on a bucket in the list
+  - `navigateToFolder(page: Page, folderPath: string)` - navigates into a folder
+  - `uploadFile(page: Page, filePath: string)` - uploads a file via UI
+  - `deleteObject(page: Page, objectKey: string)` - deletes an object via UI
+  - `openMetadataPanel(page: Page, objectKey: string)` - opens metadata for an object
 
-**Tasks:**
-- [ ] Update GitHub workflow for parallel provider testing
-- [ ] Add test result aggregation
-- [ ] Implement flaky test detection
-- [ ] Add performance benchmarks
-- [ ] Create test coverage reports
+- [ ] **Create `e2e/helpers/assertions.ts`**
+  - `expectBucketVisible(page: Page, bucketName: string)` - asserts bucket appears in list
+  - `expectObjectVisible(page: Page, objectKey: string)` - asserts object appears in list
+  - `expectObjectCount(page: Page, count: number)` - asserts number of visible objects
+  - `expectBreadcrumb(page: Page, path: string[])` - asserts breadcrumb shows expected path
+  - `expectEmptyState(page: Page)` - asserts empty bucket/folder message shown
 
-**Deliverables:**
-- Fully automated CI pipeline
-- Dashboard/reporting
+### 4. Test Implementation
+
+- [ ] **Migrate existing `e2e/bucket-browsing.spec.ts`**
+  - Update imports to use new fixtures from `e2e/fixtures`
+  - Replace hardcoded connection IDs with `provider` fixture
+  - Ensure tests work with dynamically created test buckets
+
+- [ ] **Create `e2e/tests/connection/connection-switching.spec.ts`**
+  - Test: User can switch between connections via dropdown
+  - Test: Bucket list updates when connection changes
+  - Test: Selected connection persists after page refresh (if applicable)
+
+- [ ] **Create `e2e/tests/bucket/bucket-list.spec.ts`**
+  - Test: Bucket list loads and displays test bucket
+  - Test: Clicking a bucket shows its contents
+  - Test: Empty bucket shows appropriate empty state
+
+- [ ] **Create `e2e/tests/object/object-list.spec.ts`**
+  - Test: Objects display with correct names in the list
+  - Test: Object metadata (size, last modified) displays correctly
+  - Test: Folders are visually distinguished from files
+  - Test: List handles large number of objects (virtual scrolling)
+
+- [ ] **Create `e2e/tests/object/object-upload.spec.ts`**
+  - Test: User can upload a file via the upload button
+  - Test: Uploaded file appears in the object list
+  - Test: Upload progress indicator shows during upload
+  - Test: Multiple file upload works correctly
+
+- [ ] **Create `e2e/tests/object/object-download.spec.ts`**
+  - Test: User can download a file by clicking download action
+  - Test: Downloaded file has correct content (compare with seeded data)
+  - Use Playwright's download handling to verify downloads
+
+- [ ] **Create `e2e/tests/object/object-delete.spec.ts`**
+  - Test: User can delete a single object
+  - Test: Deleted object disappears from the list
+  - Test: User can select and delete multiple objects (bulk delete)
+  - Test: Delete confirmation dialog appears before deletion
+
+- [ ] **Create `e2e/tests/object/object-metadata.spec.ts`**
+  - Test: Clicking an object opens metadata panel
+  - Test: Metadata panel shows object size, content type, last modified
+  - Test: User can edit custom metadata (skip for providers that don't support)
+  - Use `test.skip(provider === 'fake-gcs', 'reason')` for provider-specific skips
+
+- [ ] **Create `e2e/tests/navigation/folder-navigation.spec.ts`**
+  - Test: Clicking a folder navigates into it
+  - Test: Nested folder navigation works (folder within folder)
+  - Test: Back button returns to parent folder
+  - Test: URL updates to reflect current path
+
+- [ ] **Create `e2e/tests/navigation/breadcrumb.spec.ts`**
+  - Test: Breadcrumb shows current path
+  - Test: Clicking breadcrumb segment navigates to that level
+  - Test: Root breadcrumb returns to bucket root
+
+### 5. CI/CD Updates
+
+- [ ] **Update `.github/workflows/e2e-tests.yml`**
+  - Add matrix strategy with `provider: [aws-s3, azure-blob, gcp-storage]`
+  - Set `fail-fast: false` so all providers run even if one fails
+  - Pass `--project=${{ matrix.provider }}` to playwright command
+  - Update artifact upload to include provider name: `playwright-report-${{ matrix.provider }}`
+
+- [ ] **Add `test:e2e` script variants to `package.json`**
+  - `test:e2e` - runs all provider projects
+  - `test:e2e:s3` - runs only `--project=aws-s3`
+  - `test:e2e:azure` - runs only `--project=azure-blob`
+  - `test:e2e:gcs` - runs only `--project=gcp-storage`
+
+### 6. Data Test IDs
+
+- [ ] **Add `data-testid` attributes to UI components**
+  - Review components in `src/app/` and `src/components/`
+  - Add testids to: connection selector, bucket list items, object list rows, action buttons
+  - Follow naming convention: `<component>-<element>` (e.g., `bucket-list-item`, `object-row`)
+  - Document added testids in `e2e/helpers/selectors.ts`
 
 ---
 
@@ -498,60 +589,17 @@ export const bucketFixture = base.extend<BucketFixtures>({
 });
 ```
 
-### API Client Fixture
-
-```typescript
-// e2e/fixtures/api-client.ts
-export class TestAPIClient {
-  constructor(private provider: string, private baseUrl: string) {}
-
-  async listBuckets() {
-    const response = await fetch(
-      `${this.baseUrl}/api/buckets?connectionId=${this.provider}`
-    );
-    return response.json();
-  }
-
-  async listObjects(bucket: string, prefix?: string) {
-    const params = new URLSearchParams({ connectionId: this.provider });
-    if (prefix) params.set('prefix', prefix);
-
-    const response = await fetch(
-      `${this.baseUrl}/api/buckets/${bucket}/objects?${params}`
-    );
-    return response.json();
-  }
-
-  async uploadObject(bucket: string, key: string, content: Buffer) {
-    // Direct API upload for test setup
-  }
-
-  async deleteObject(bucket: string, key: string) {
-    // Direct API delete for test cleanup
-  }
-}
-
-export const apiClientFixture = base.extend<{ api: TestAPIClient }>({
-  api: async ({ provider, baseURL }, use) => {
-    const client = new TestAPIClient(provider, baseURL!);
-    await use(client);
-  },
-});
-```
-
 ### Combined Fixtures Export
 
 ```typescript
 // e2e/fixtures/index.ts
-import { mergeTests, mergeExpect } from '@playwright/test';
+import { mergeTests } from '@playwright/test';
 import { providerFixture } from './provider-fixture';
 import { bucketFixture } from './bucket-fixture';
-import { apiClientFixture } from './api-client';
 
 export const test = mergeTests(
   providerFixture,
-  bucketFixture,
-  apiClientFixture
+  bucketFixture
 );
 
 export { expect } from '@playwright/test';
@@ -766,6 +814,7 @@ pnpm test:e2e --reporter=html
 | Date | Version | Changes |
 |------|---------|---------|
 | 2025-12-08 | 0.1.0 | Initial draft |
+| 2025-12-09 | 0.2.0 | Focus on UI-level testing, replace weekly plan with detailed tasks |
 
 ---
 
