@@ -50,8 +50,13 @@ test.describe('Object List', () => {
     await expect(firstObjectRow).toBeVisible();
 
     // Verify object name is displayed
-    const objectName = firstObjectRow.locator(SELECTORS.objectName).or(firstObjectRow);
+    const objectName = firstObjectRow.locator(SELECTORS.objectName);
     await expect(objectName).toBeVisible();
+
+    // Verify the object name has text
+    const nameText = await objectName.textContent();
+    expect(nameText).toBeTruthy();
+    expect(nameText!.trim().length).toBeGreaterThan(0);
 
     // Object metadata (size, last modified) might be in the row
     // This is UI-dependent, so we just verify the row is visible and contains text
