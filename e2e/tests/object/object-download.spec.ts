@@ -1,5 +1,5 @@
 import { test, expect } from '../../fixtures';
-import { selectConnection, selectBucket } from '../../helpers/actions';
+import { selectConnection, selectBucket, openMetadataPanel } from '../../helpers/actions';
 import { SELECTORS } from '../../helpers/selectors';
 import * as path from 'path';
 import * as fs from 'fs';
@@ -20,33 +20,30 @@ test.describe('Object Download', () => {
     const objectList = page.locator(SELECTORS.objectList);
     await expect(objectList).toBeVisible({ timeout: 10000 });
 
-    // Get first object
-    const firstObjectRow = objectList.locator(SELECTORS.objectRow).first();
-    await expect(firstObjectRow).toBeVisible();
+    // Find a file object (not a folder)
+    const fileObjects = testObjects.filter((key) => !key.includes('/') || key.split('/').length === 1);
+    if (fileObjects.length === 0) {
+      test.skip('No file objects available for download test');
+      return;
+    }
 
-    // Set up download listener
+    const fileObjectKey = fileObjects[0];
+    const fileName = fileObjectKey.split('/').pop() || fileObjectKey;
+
+    // Set up download listener BEFORE clicking
     const downloadPromise = page.waitForEvent('download', { timeout: 10000 });
 
-    // Try to trigger download - this depends on your UI implementation
-    // Common patterns: right-click menu, download button, or clicking the object
-    // For now, we'll try clicking on the object row (if it triggers download)
-    // Or look for a download button/icon
-    const downloadButton = firstObjectRow.locator('[data-testid="download-button"]').or(firstObjectRow.locator('button:has-text("Download")'));
-    
-    if (await downloadButton.isVisible({ timeout: 2000 }).catch(() => false)) {
-      await downloadButton.click();
-    } else {
-      // If no download button, try right-click or other interaction
-      // This is UI-dependent
-      await firstObjectRow.click({ button: 'right' });
-      const downloadOption = page.getByRole('menuitem', { name: /download/i });
-      if (await downloadOption.isVisible({ timeout: 2000 }).catch(() => false)) {
-        await downloadOption.click();
-      } else {
-        // Skip test if download mechanism not found
-        test.skip();
-      }
-    }
+    // Click on the object to open the metadata panel
+    await openMetadataPanel(page, fileObjectKey);
+
+    // Wait for metadata panel to be visible
+    const metadataPanel = page.locator(SELECTORS.metadataPanel);
+    await expect(metadataPanel).toBeVisible({ timeout: 5000 });
+
+    // Find and click the download button in the metadata panel
+    const downloadButton = metadataPanel.locator('[data-testid="download-button"]');
+    await expect(downloadButton).toBeVisible({ timeout: 5000 });
+    await downloadButton.click();
 
     // Wait for download to start
     const download = await downloadPromise;

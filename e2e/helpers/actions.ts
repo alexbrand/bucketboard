@@ -137,11 +137,16 @@ export async function openMetadataPanel(page: Page, objectKey: string): Promise<
   const objectList = page.locator(SELECTORS.objectList);
   await expect(objectList).toBeVisible();
 
-  const objectRow = objectList.locator(SELECTORS.objectRow).filter({ hasText: objectKey });
+  // Find the object row by filename (last part of the key)
+  const fileName = objectKey.split('/').pop() || objectKey;
+  const objectRow = objectList.locator(SELECTORS.objectRow).filter({ hasText: new RegExp(fileName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')) });
   await expect(objectRow).toBeVisible();
 
-  // Click on the object row to open metadata
-  await objectRow.click();
+  // Click on the object name or the button containing it to open metadata
+  // The button wraps the icon and name, clicking on the name should work
+  const objectName = objectRow.locator(SELECTORS.objectName);
+  await expect(objectName).toBeVisible();
+  await objectName.click();
 
   // Wait for metadata panel to appear
   const metadataPanel = page.locator(SELECTORS.metadataPanel);

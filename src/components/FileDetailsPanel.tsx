@@ -520,6 +520,7 @@ export function FileDetailsPanel({
               )}
               <Button asChild className="w-full">
                 <a
+                  data-testid="download-button"
                   href={`/api/buckets/${bucketName}/download?connectionId=${connectionId}&key=${encodeURIComponent(selectedObject.key)}`}
                   download
                 >
