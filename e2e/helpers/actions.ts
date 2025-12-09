@@ -2,6 +2,15 @@ import { Page, expect } from '@playwright/test';
 import { SELECTORS } from './selectors';
 
 /**
+ * Maps connection IDs to their display names
+ */
+const CONNECTION_NAMES: Record<string, string> = {
+  'localstack-s3': 'LocalStack S3',
+  'azurite-blob': 'Azurite Blob Storage',
+  'fake-gcs': 'Fake GCS Server',
+};
+
+/**
  * Selects a connection from the connection dropdown
  */
 export async function selectConnection(page: Page, connectionId: string): Promise<void> {
@@ -14,9 +23,11 @@ export async function selectConnection(page: Page, connectionId: string): Promis
   const dropdown = page.locator(SELECTORS.connectionDropdown);
   await expect(dropdown).toBeVisible();
 
-  // Find and click the option with the matching connection ID
-  const option = dropdown.locator(SELECTORS.connectionOption).filter({ hasText: connectionId });
-  await expect(option).toBeVisible();
+  // Find and click the option with the matching connection name or ID
+  // The UI displays connection names, not IDs
+  const connectionName = CONNECTION_NAMES[connectionId] || connectionId;
+  const option = dropdown.locator(SELECTORS.connectionOption).filter({ hasText: new RegExp(connectionName, 'i') });
+  await expect(option).toBeVisible({ timeout: 10000 });
   await option.click();
 
   // Wait for dropdown to close

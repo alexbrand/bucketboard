@@ -1,8 +1,6 @@
 import { connectionManager } from '../../src/lib/storage/connection-store';
-import { createStorageProvider } from '../../src/lib/storage/provider-factory';
-import { StorageProvider } from '../../src/lib/storage/interface';
 import { Connection } from '../../src/lib/types/connections';
-import { S3Client, CreateBucketCommand, DeleteBucketCommand, ListObjectsV2Command, DeleteObjectCommand } from '@aws-sdk/client-s3';
+import { S3Client, CreateBucketCommand, DeleteBucketCommand, ListObjectsV2Command, DeleteObjectCommand, PutObjectCommand } from '@aws-sdk/client-s3';
 import { BlobServiceClient, StorageSharedKeyCredential } from '@azure/storage-blob';
 import { Storage } from '@google-cloud/storage';
 import {
@@ -183,7 +181,6 @@ export async function seedTestData(
     throw new Error(`Connection "${providerId}" not found`);
   }
 
-  const provider = await createStorageProvider(connection);
   const testObjects: TestObject[] = [];
 
   // Upload files in batches
@@ -196,8 +193,81 @@ export async function seedTestData(
     const content = generateFileContent(fileSize);
     const contentType = getContentType(fileKey);
 
-    const uploadPromise = provider
-      .putObject(bucketName, fileKey, content, contentType)
+    let uploadPromise: Promise<void>;
+
+    if (connection.provider === 'aws-s3') {
+      const conn = connection as AWSS3Connection;
+      const config: {
+        region: string;
+        credentials: { accessKeyId: string; secretAccessKey: string };
+        endpoint?: string;
+        forcePathStyle?: boolean;
+      } = {
+        region: conn.config.region,
+        credentials: {
+          accessKeyId: conn.config.accessKeyId,
+          secretAccessKey: conn.config.secretAccessKey,
+        },
+      };
+      if (conn.config.endpoint) {
+        config.endpoint = conn.config.endpoint;
+        config.forcePathStyle = true;
+      }
+      const client = new S3Client(config);
+      const command = new PutObjectCommand({
+        Bucket: bucketName,
+        Key: fileKey,
+        Body: content,
+        ContentType: contentType,
+      });
+      uploadPromise = client.send(command).then(() => {});
+    } else if (connection.provider === 'azure-blob') {
+      const conn = connection as AzureBlobConnection;
+      const sharedKeyCredential = new StorageSharedKeyCredential(
+        conn.config.accountName,
+        conn.config.accountKey
+      );
+      const endpoint = conn.config.endpoint
+        ? conn.config.endpoint
+        : `https://${conn.config.accountName}.blob.core.windows.net`;
+      const client = new BlobServiceClient(endpoint, sharedKeyCredential);
+      const containerClient = client.getContainerClient(bucketName);
+      const blockBlobClient = containerClient.getBlockBlobClient(fileKey);
+      uploadPromise = blockBlobClient.upload(content, content.length, {
+        blobHTTPHeaders: { blobContentType: contentType },
+      }).then(() => {});
+    } else if (connection.provider === 'gcp-storage') {
+      const conn = connection as GCPStorageConnection;
+      const storageConfig: {
+        projectId: string;
+        credentials: { client_email: string; private_key: string };
+        apiEndpoint?: string;
+      } = {
+        projectId: conn.config.projectId,
+        credentials: {
+          client_email: conn.config.clientEmail,
+          private_key: conn.config.privateKey,
+        },
+      };
+      if (conn.config.apiEndpoint) {
+        storageConfig.apiEndpoint = conn.config.apiEndpoint;
+      }
+      const client = new Storage(storageConfig);
+      const bucket = client.bucket(bucketName);
+      const file = bucket.file(fileKey);
+      uploadPromise = new Promise((resolve, reject) => {
+        const stream = file.createWriteStream({
+          metadata: { contentType },
+        });
+        stream.on('error', reject);
+        stream.on('finish', resolve);
+        stream.end(content);
+      });
+    } else {
+      throw new Error(`Unsupported provider: ${connection.provider}`);
+    }
+
+    uploadPromise = uploadPromise
       .then(() => {
         testObjects.push({
           key: fileKey,
