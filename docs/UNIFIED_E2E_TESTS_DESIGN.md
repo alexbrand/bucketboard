@@ -12,8 +12,8 @@
 3. [Goals & Requirements](#goals--requirements)
 4. [Strategy Options](#strategy-options)
 5. [Recommended Approach](#recommended-approach)
-6. [Implementation Plan](#implementation-plan)
-7. [Open Questions](#open-questions)
+6. [Implementation Tasks](#implementation-tasks)
+7. [Decisions](#decisions)
 
 ---
 
@@ -724,33 +724,39 @@ jobs:
 
 ---
 
-## Open Questions
+## Decisions
 
-### For Discussion
+The following decisions have been finalized:
 
-1. **Test data isolation strategy**
-   - Option A: Unique bucket per test (slower, full isolation)
-   - Option B: Shared bucket with unique prefixes (faster, less isolation)
-   - Option C: Shared bucket, cleanup before each test (medium)
-   - **Recommendation:** Option A for CI, Option B for local development
+### 1. Test Data Isolation Strategy
 
-2. **Emulator vs real provider testing**
-   - Should we support testing against real cloud providers?
-   - How to handle credentials securely?
-   - Is emulator parity sufficient?
+**Decision:** Option A - Unique bucket per test
 
-3. **Performance benchmarking**
-   - Should we track operation timing per provider?
-   - Alert on significant performance regressions?
+Each test creates its own bucket with a unique name (using `testInfo.testId` and timestamp), seeds test data, runs the test, and cleans up afterward. This provides full isolation and eliminates flaky tests from data bleed between tests.
 
-4. **Provider priority in CI**
-   - Run all providers on every PR?
-   - Or use a "primary" provider for PR, all providers for main?
+### 2. Emulator vs Real Provider Testing
 
-5. **Flaky test handling**
-   - Current: 2 retries in CI
-   - Should we quarantine flaky tests?
-   - Provider-specific flakiness tracking?
+**Decision:** Emulators only
+
+E2E tests will run exclusively against emulators (LocalStack, Azurite, fake-gcs-server). Real cloud provider testing is out of scope for browser e2e tests. The existing docker-compose setup provides sufficient coverage for UI interaction paths.
+
+### 3. Performance Benchmarking
+
+**Decision:** Skip for now
+
+No performance tracking in e2e tests. E2E tests focus on correctness, not performance. Performance metrics would be unreliable due to CI runner variability. Can revisit if needed in the future.
+
+### 4. Provider Priority in CI
+
+**Decision:** All 3 providers on every PR
+
+Run all provider projects (aws-s3, azure-blob, gcp-storage) on every pull request. Tests run in parallel via matrix strategy, so wall-clock time impact is minimal. This catches provider-specific regressions before merge.
+
+### 5. Flaky Test Handling
+
+**Decision:** Keep current retry approach
+
+Maintain the existing 2 retries in CI configuration. No quarantine system needed at this time. Focus on writing stable tests from the start. Revisit if flakiness becomes a recurring issue.
 
 ---
 
@@ -815,6 +821,7 @@ pnpm test:e2e --reporter=html
 |------|---------|---------|
 | 2025-12-08 | 0.1.0 | Initial draft |
 | 2025-12-09 | 0.2.0 | Focus on UI-level testing, replace weekly plan with detailed tasks |
+| 2025-12-09 | 0.3.0 | Finalize decisions on isolation, emulators, CI strategy, flaky tests |
 
 ---
 
