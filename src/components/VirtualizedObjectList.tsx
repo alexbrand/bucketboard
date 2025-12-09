@@ -123,6 +123,7 @@ const RowComponent = ({
 
   return (
     <div
+      data-testid="object-row"
       style={style}
       className={cn(
         'grid grid-cols-[auto_1fr_120px_200px] items-center gap-4 border-b px-6 py-3 cursor-pointer outline-none',
@@ -157,7 +158,7 @@ const RowComponent = ({
       >
         {/* eslint-disable-next-line react-hooks/static-components */}
         <IconComponent className={cn('h-5 w-5 flex-shrink-0', 'text-primary')} />
-        <span className="ml-3 text-sm font-medium truncate">
+        <span data-testid="object-name" className="ml-3 text-sm font-medium truncate">
           {object.key.split('/').filter(Boolean).pop()}
         </span>
       </button>
@@ -269,7 +270,7 @@ export function VirtualizedObjectList({
   };
 
   return (
-    <div ref={containerRef} className="h-full overflow-hidden flex flex-col">
+    <div ref={containerRef} data-testid="object-list" className="h-full overflow-hidden flex flex-col">
       {/* Header row with select all checkbox */}
       {objects.length > 0 && (
         <div className="grid grid-cols-[auto_1fr_120px_200px] items-center gap-4 border-b bg-muted/30 px-6 py-3">

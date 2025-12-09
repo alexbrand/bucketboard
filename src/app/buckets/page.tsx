@@ -1203,7 +1203,7 @@ function BucketsPageContent() {
               )}
 
               <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
+                <div data-testid="breadcrumb" className="flex items-center space-x-2">
                   <Button
                     variant="link"
                     onClick={() => setCurrentPrefix('')}
@@ -1218,6 +1218,7 @@ function BucketsPageContent() {
                     <Fragment key={crumb.path}>
                       {index > 0 && <span className="text-muted-foreground">/</span>}
                       <Button
+                        data-testid="breadcrumb-item"
                         variant="link"
                         onClick={() => navigateToFolder(crumb.path)}
                         className={`h-auto p-0 text-sm ${index === breadcrumbs.length - 1 ? '' : 'text-muted-foreground'}`}
@@ -1241,7 +1242,7 @@ function BucketsPageContent() {
                         Download ({selectedFiles.size})
                       </Button>
                       {!readOnly && (
-                        <Button onClick={handleDeleteSelected} variant="destructive" size="sm">
+                        <Button data-testid="delete-button" onClick={handleDeleteSelected} variant="destructive" size="sm">
                           <X className="mr-1.5 h-4 w-4" />
                           Delete ({selectedFiles.size})
                         </Button>
@@ -1270,6 +1271,7 @@ function BucketsPageContent() {
                   )}
                   {!readOnly && (
                     <Button
+                      data-testid="upload-button"
                       onClick={() => fileInputRef.current?.click()}
                       disabled={uploadingFile}
                       variant="outline"
